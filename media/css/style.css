@@ -1,0 +1,132 @@
+@import url(http://fonts.googleapis.com/css?family=Carme);
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:300);
+
+@font-face {
+    font-family: 'nevisBold';
+    src: url('/media/font/nevis-webfont.eot');
+    src: url('/media/font/nevis-webfont.eot?#iefix') format('embedded-opentype'),
+         url('/media/font/nevis-webfont.woff') format('woff'),
+         url('/media/font/nevis-webfont.ttf') format('truetype'),
+         url('/media/font/nevis-webfont.svg#nevisBold') format('svg');
+    font-weight: normal;
+    font-style: normal;
+	}
+@font-face {
+	}
+body {
+	width:900px;
+	margin-left:auto;
+	margin-right:auto;
+	background:url('/media/images/bg.jpg') repeat-x;
+	font-family:open sans, Verdana;
+	font-size:12px;
+	}
+#logo {
+	margin-top:25px;
+	text-decoration:none;
+	margin-bottom: 20px;
+	}
+#dashboard {
+	font-weight:bold;
+	color:#555555;
+	float:left;
+	width:190px;
+	height:100%;
+	padding: 10px;
+	border:2px #B5B7B9 solid;
+	border-radius:15px;
+	-moz-border-radius:15px;/*
+	-webkit-box-shadow: 5px 5px 1px #B5B7B9;
+	box-shadow: 5px 5px 1px #B5B7B9;*/
+}
+#dashboard h1{
+	font-size: 12pt;
+}
+#results {
+	padding:5px;
+	margin:0 0 5px 30px;
+	float:left;
+	width:640px;
+	height:100%;
+	border:2px #B5B7B9 solid;
+	border-radius:15px;
+	-moz-border-radius:15px;
+	-webkit-box-shadow: 5px 5px 1px #B5B7B9;
+	box-shadow: 5px 5px 1px #B5B7B9;
+	margin-bottom: 50px;
+}
+ul {
+	margin-left:-20px;
+	list-style:none;
+}
+li {
+	padding-bottom:5px;
+	}
+.category {
+	padding: 10px;
+	padding-left:15px;
+	font-family:nevisBold;
+	font-size:24px;
+	border-radius:10px 10px 0 0;
+	-moz-border-radius:15px;
+	color:#FFFFFF;
+	background:#28AAE1;
+}
+.description {
+	margin: 10px;
+	font-size: 12pt;
+}
+#overview {
+	border-bottom:1px #B5B7B9 solid;
+	}
+.top_list {
+	padding-left:2px;
+	padding-top:2px;
+	margin-top: 10px;
+	color:#000000;
+}
+#selected {
+	border-left:2px #999999 solid;
+	color:white;
+	background-color:#555555;
+}
+#filters {
+	font-weight:bold;
+	padding:5px 0 0 5px;
+	width:500px;
+	height:50px;
+	position:fixed;
+	right:0;
+	bottom:0;
+	background-color:rgba(255,255,255,0.9);
+	border-radius:5px 0 0 0;
+	-moz-border-radius:15px;
+	border-top: 3px solid #aaa;
+	border-left: 3px solid #aaa;	
+	background: #eef;
+	}
+.filtertext {
+	float:left;
+	width:150px;
+}
+.filterstuff {
+	float:left;
+	width:300px;
+}
+.tab a:hover{
+     color: black;
+}
+
+a:link {text-decoration: none; color: #aaa;}
+a:hover {text-decoration:none; color: #aaa;}
+a:visited {text-decoration: none; color: #aaa;}
+a:active {color: #aaa;}
+
+#foo table {width: 100%;}
+
+.email {font-size: 10pt; font-height: 30pt; text-align:right; padding-right:20px; width: 25ex;}
+.count {font-size: 10pt; text-align: right;}
+td.email, td.spark, td.count {vertical-align: bottom; height: 25px;}
+td.spark, td.count {margin-left: 10px; margin-right: 10px; text-align: center;}
+.spark label { font-size: 6pt; padding:5px; vertical-align: bottom; color: grey;}
+#contacts_list {margin-left: 15px	;}
