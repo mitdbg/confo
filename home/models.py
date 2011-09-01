@@ -1,22 +1,32 @@
 from django.db import models
 
 class Conference(models.Model):
-    short = models.CharField(max_length=30)
+    class Meta:
+        db_table = "conferences"
+    short = models.CharField(max_length=30, db_index=True)
     full = models.TextField()
 
 class ConfYear(models.Model):
-    conf = models.ForeignKey(Conference)
-    year = models.DateField()
+    class Meta:
+        db_table = "years"
+    conf = models.ForeignKey(Conference, db_column="cid")
+    year = models.IntegerField(db_column="year")
 
 class Author(models.Model):
-    name = models.TextField()
+    class Meta:
+        db_table = "authors"
+    name = models.TextField(db_column="name", db_index=True)
 
 class Paper(models.Model):
-    conf = models.ForeignKey(ConfYear)
+    class Meta:
+        db_table = "papers"
+    conf = models.ForeignKey(ConfYear, db_column="cid")
     authors = models.ManyToManyField(Author, related_name="papers")
-    title = models.TextField()
+    title = models.TextField(db_column="title")
     
 class Word(models.Model):
-    paper = models.ForeignKey(Paper)
-    word = models.CharField(max_length=128)
+    class Meta:
+        db_table = "words"
+    paper = models.ForeignKey(Paper, db_column="pid")
+    word = models.CharField(max_length=128, db_column="word")
     

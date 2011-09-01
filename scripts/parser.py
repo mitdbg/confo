@@ -5,12 +5,18 @@ import xml.parsers.expat
 ROOT = os.path.abspath('%s/../..' % os.path.abspath(os.path.dirname(__file__)))
 sys.path.append(ROOT)
 os.environ['DJANGO_SETTINGS_MODULE'] = 'confo.settings'
-import confo.home.models
-
+from django.core.management import setup_environ
+from confo import settings
+setup_environ(settings)
+print settings.DATABASES
+from confo.home.models import *
+from django.db import transaction
 
 paperinfo = None
 curkey = None
 stop = set(stopwords.words('english'))
+counter = 0
+
 
 class FormatError(Exception):
     def __init__(self, message):
@@ -41,14 +47,29 @@ def process_paper(paperinfo, author_dict, conf_dict):
     year = int(paperinfo["year"][0])
     title = paperinfo["title"][0]
     conf = get_conf(paperinfo.get("crossref", [""])[0])
+    confname = paperinfo["booktitle"]
     authors = paperinfo.get("author", [])
-    
-#    print year, conf, title
-    
+
+    c,_ = Conference.objects.get_or_create(short=conf, full=confname)
+    y,_ = ConfYear.objects.get_or_create(conf=c,year=year)
+    auths = [Author.objects.get_or_create(name=author)[0] for author in authors]
+
+    try:
+        p = Paper(conf=y,title=title)
+        p.save()
+        p.authors.add(*auths)
+        p.save()
+    except :
+        print "ERROR:", paperinfo
+
+
+@transaction.commit_manually    
 def parse(filename):
     authors = UniqueIder()
     conferences = UniqueIder()
-    storekeys = set(("year", "title", "author", "crossref"))
+    storekeys = set(("year", "title", "author", "crossref", 'booktitle'))
+    
+    
     def start_element(name, attrs):
         global paperinfo, curkey
         if name == "inproceedings":
@@ -56,27 +77,36 @@ def parse(filename):
         elif paperinfo != None and name in storekeys:
             curkey = name
     def end_element(name):
-        global paperinfo, curkey
+        global paperinfo, curkey, counter
         try:
             if paperinfo != None and name == "inproceedings":
                 process_paper(paperinfo, authors, conferences)
                 paperinfo = None
+                counter += 1
+                if counter % 1000 == 0:
+                    print counter
         except FormatError as e:
             sys.stderr.write("Formatting exception: %s on %s\n" % (e.message, repr(paperinfo)))
             
     def char_data(data):
         global paperinfo, curkey
+
         if curkey != None:
             vals = paperinfo.get(curkey, [])
             vals.append(data)
             paperinfo[curkey] = vals
             curkey = None
+    try:
+        p = xml.parsers.expat.ParserCreate()
+        p.StartElementHandler = start_element
+        p.EndElementHandler = end_element
+        p.CharacterDataHandler = char_data
+        p.ParseFile(open(filename))
+        transaction.commit()
+    except Exception, e:
+        print e
+        transaction.rollback()
 
-    p = xml.parsers.expat.ParserCreate()
-    p.StartElementHandler = start_element
-    p.EndElementHandler = end_element
-    p.CharacterDataHandler = char_data
-    p.ParseFile(open(filename))
     return yearcounts
 
 def sortcounts(yearcounts):
@@ -90,7 +120,12 @@ def sortcounts(yearcounts):
     return sortedcounts
 
 if __name__ == "__main__":
-    yearcounts = parse("dblp.xml")
+
+
+
+
+    fname = len(sys.argv) > 1 and sys.argv[1] or 'dblp.xml'
+    yearcounts = parse(fname)
     sortedcounts = sortcounts(yearcounts)
     for year, sortedwords in sortedcounts:
         print year
