@@ -14,6 +14,9 @@ class Author(models.Model):
 class Paper(models.Model):
     conf = models.ForeignKey(ConfYear)
     authors = models.ManyToManyField(Author, related_name="papers")
-    title = model.TextField()
-
+    title = models.TextField()
+    
+class Word(models.Model):
+    paper = models.ForeignKey(Paper)
+    word = models.CharField(max_length=128)
     

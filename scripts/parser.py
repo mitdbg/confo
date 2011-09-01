@@ -1,6 +1,12 @@
+import sys, os
 from nltk.corpus import stopwords
 import xml.parsers.expat
-import sys
+
+ROOT = os.path.abspath('%s/../..' % os.path.abspath(os.path.dirname(__file__)))
+sys.path.append(ROOT)
+os.environ['DJANGO_SETTINGS_MODULE'] = 'confo.settings'
+import confo.home.models
+
 
 paperinfo = None
 curkey = None
