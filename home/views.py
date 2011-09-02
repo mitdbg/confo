@@ -21,45 +21,55 @@ from django.db.models import Count
 def index(request):
     pass
 
+#def conference_all(request):
+#    Conference.objects.
+
 def conference(request, name):
     from django.db import connection, transaction
     cursor = connection.cursor()
 
     print name
-    cyears = ConfYear.objects.filter(conf__short__icontains = name)
+    cyears = ConfYear.objects.filter(conf__name__icontains = name)
     years = sorted(set([cyear.year for cyear in cyears]))
     print "years", years
 
     topks = []
-    words = set()
+    words = {}
     for year in years:
         query = """select word, count(*) as c
         from conferences as c, years as y, papers as p, words as w
-        where c.short like %s and c.id = y.cid and p.cid = c.id and
-        w.pid = p.id and y.year = %s
+        where c.id = y.cid and p.cid = y.id and w.pid = p.id and
+        c.name ilike %s and y.year = %s 
         group by word
         order by c desc
         limit 10"""
         cursor.execute(query, ['%%%s%%' % name, year])
         data = cursor.fetchall()
-        words.update(map(lambda pair:pair[0], data))
+
+        for word, c in data:
+            if word not in words: words[word] = c
+            words[word] = max(c, words[word])
+        
         topks.append((year, data))
-    print topks
+
+    words = sorted(words.items(), key=lambda p:p[1], reverse=True)[:20]
 
     wordtrends = []
     maxcount = 0
-    for word in words:
+    for word,_ in words:
         query = """select year, count(*) as c
         from conferences as c, years as y, papers as p, words as w
-        where w.pid = p.id and p.cid = c.id and y.cid = c.id and w.word = %s
+        where w.pid = p.id and p.cid = y.id and y.cid = c.id and
+        w.word = %s and c.name like %s        
         group by year
-        order by year asc
-        """
-        cursor.execute(query, [word])
+        order by year asc"""
+        
+        cursor.execute(query, [word, '%%%s%%' % name])
         d = dict(cursor.fetchall())
         trend = [d.get(year, 0) for year in years]
         wordtrends.append((word, trend))
         maxcount = max(maxcount, max(trend))
+        print word, maxcount
     wordtrends.sort(key=lambda pair: max(pair[1]), reverse=True)
     cursor.close()
 
@@ -76,7 +86,7 @@ def authors_json(request):
     import json    
     term = request.REQUEST.get('term',None)
     if term:
-        names = [a.name for a in Author.objects.filter(name__icontains=term).order_by('name')]
+        names = [a.name for a in Author.objects.filter(name__icontains=term).annotate(c=Count('papers')).order_by('-c')[:50]]
     else:
         names = []
     return HttpResponse(json.dumps(names), mimetype='application/json')
@@ -103,7 +113,7 @@ def author(request, name):
     order by c.name, y.year
     """
 
-    cursor.execute(query, [name])
+    cursor.execute(query, ['%%%s%%' % name])
     confdata = {}
     years = set()
     for row in cursor:
@@ -113,13 +123,17 @@ def author(request, name):
         confdata[confname][year] = c
         years.add(year)
     years = range(min(years), max(years) + 1)
+    
     ret = []
+    maxcount = 0
     for confname, vals in confdata.items():
         counts = [vals.get(year,0) for year in years]
         ret.append((confname, counts))
+        maxcount = max(maxcount, max(counts))
                                            
     return render_to_response("home/author.html",
-                              {'counts' : ret},
+                              {'counts' : ret,
+                               'maxcount' : maxcount},
                               context_instance=RequestContext(request))
 
     

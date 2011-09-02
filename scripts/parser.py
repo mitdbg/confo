@@ -45,9 +45,11 @@ def process_paper(paperinfo):
         raise FormatError("bad paper year")
         return
 
+    auths = [authcache.get(author, {'name':author}, True) for author in authors]
+    return
     c = confcache.get(conf, {'short':conf, 'name':confname}, True)
     y = confycache.get(conf+str(year), {'cid': c, 'year': year}, True)
-    auths = [authcache.get(author, {'name':author}, True) for author in authors]
+
 
     try:
         p = papercache.get("", {'cid':y, 'title': title}, False)
@@ -89,6 +91,8 @@ def parse(filename):
         global paperinfo, curkey
 
         if curkey != None:
+            if 'author' == curkey and 'Eugene Wu' in data:
+                print data
             vals = paperinfo.get(curkey, [])
             vals.append(data)
             paperinfo[curkey] = vals
