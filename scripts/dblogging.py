@@ -2,7 +2,7 @@ import csv
 import os
 
 def load_logger(mode):
-    confcache = LogOrCache(["short", "name"], "conferences.txt", mode)
+    confcache = LogOrCache(["name"], "conferences.txt", mode)
     confycache = LogOrCache(["cid","year"], "conferenceyears.txt", mode)
     authcache = LogOrCache(["name"], "authors.txt", mode)
     papercache = LogOrCache(["cid", "title"], "papers.txt", mode)
