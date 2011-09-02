@@ -16,11 +16,11 @@ def load_db():
     try:
         (confcache, confycache, authcache, papercache, pacache) = load_logger("r")
         cursor = connection.cursor()
-        confcache.logtodb(cursor, "conferences")
-        confycache.logtodb(cursor, "years")
-        papercache.logtodb(cursor, "papers")
-        authcache.logtodb(cursor, "authors")
-        pacache.logtodb(cursor, "papers_authors")
+        confcache.logtodb(cursor)
+        confycache.logtodb(cursor)
+        papercache.logtodb(cursor)
+        authcache.logtodb(cursor)
+        pacache.logtodb(cursor)
         transaction.commit()
     except Exception, e:
         transaction.rollback()
