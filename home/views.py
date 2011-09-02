@@ -26,7 +26,7 @@ def conference(request, name):
     cursor = connection.cursor()
 
     print name
-    cyears = ConfYear.objects.filter(conf__short__icontains = name)
+    cyears = ConfYear.objects.filter(conf__name__icontains = name)
     years = sorted(set([cyear.year for cyear in cyears]))
     print "years", years
 
@@ -40,6 +40,7 @@ def conference(request, name):
         group by word
         order by c desc
         limit 10"""
+        raise Exception("fix this sql injection exploit")
         cursor.execute(query, ['%%%s%%' % name, year])
         data = cursor.fetchall()
         words.update(map(lambda pair:pair[0], data))

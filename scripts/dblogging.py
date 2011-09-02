@@ -40,11 +40,3 @@ class LogOrCache():
         print cmd
         os.system(cmd)
         return
-        
-        
-        cmd = "COPY %s (%s) FROM '%s' WITH CSV;" % (
-                table,
-                ", ".join(self.props),
-                os.path.abspath(self.logname))
-        print cmd
-        cursor.execute(cmd)

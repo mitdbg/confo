@@ -3,8 +3,7 @@ from django.db import models
 class Conference(models.Model):
     class Meta:
         db_table = "conferences"
-    short = models.CharField(max_length=30, db_index=True)
-    name = models.TextField()
+    name = models.TextField(db_index=True)
 
 class ConfYear(models.Model):
     class Meta:
