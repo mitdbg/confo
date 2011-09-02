@@ -8,7 +8,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'confo.settings'
 from django.core.management import setup_environ
 from confo import settings
 setup_environ(settings)
-print settings.DATABASES
+
 from confo.home.models import *
 from django.db import transaction
 
@@ -47,8 +47,12 @@ def process_paper(paperinfo, author_dict, conf_dict):
     year = int(paperinfo["year"][0])
     title = paperinfo["title"][0]
     conf = get_conf(paperinfo.get("crossref", [""])[0])
-    confname = paperinfo["booktitle"]
+    confname = paperinfo["booktitle"][0]
     authors = paperinfo.get("author", [])
+
+    if year < 1910 or year > 2020:
+        print >> sys.stderr, "bad paper data", paperinfo
+        return
 
     c,_ = Conference.objects.get_or_create(short=conf, full=confname)
     y,_ = ConfYear.objects.get_or_create(conf=c,year=year)
@@ -60,7 +64,7 @@ def process_paper(paperinfo, author_dict, conf_dict):
         p.authors.add(*auths)
         p.save()
     except :
-        print "ERROR:", paperinfo
+        print >> sys.stderr, "ERROR:", paperinfo
 
 
 @transaction.commit_manually    
@@ -85,6 +89,7 @@ def parse(filename):
                 counter += 1
                 if counter % 1000 == 0:
                     print counter
+                if counter > 2000: raise RuntimeError
         except FormatError as e:
             sys.stderr.write("Formatting exception: %s on %s\n" % (e.message, repr(paperinfo)))
             
@@ -105,9 +110,10 @@ def parse(filename):
         transaction.commit()
     except Exception, e:
         print e
-        transaction.rollback()
+        transaction.commit()
+        #transaction.rollback()
 
-    return yearcounts
+    return 
 
 def sortcounts(yearcounts):
     sortedcounts = []
@@ -120,10 +126,7 @@ def sortcounts(yearcounts):
     return sortedcounts
 
 if __name__ == "__main__":
-
-
-
-
+    print "parsing dblp.xml"
     fname = len(sys.argv) > 1 and sys.argv[1] or 'dblp.xml'
     yearcounts = parse(fname)
     sortedcounts = sortcounts(yearcounts)

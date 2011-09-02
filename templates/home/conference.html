@@ -7,7 +7,7 @@
 	
 	<script>
 	$(function() {
-		$('.spark').sparkline('html', {width: "150px"});     
+		$('.spark').sparkline('html', {width: "150px", type:'bar', chartRangeMax:{{maxcount}}});     
 	});
 	</script>
 	
@@ -43,14 +43,6 @@
 
 <h1>Trends by keyword</h1>
 
-<p class='wide'>
-	It's interesting to see topics such as <b>cloud, graph, tool, mapreduce, social, and online</b> coming into the scene in the past few years.
-<p class='wide'>
-	
-<p class='wide'>
-	Also, it seems that <b>technology and xml</b>, are taking a downturn, as is <b>relational</b> -- is this the turning point for NoSQL?
-	Strange to see <b>OLAP</b> slowing down, given the popularity of <b>large</b> data these days.
-
 <div style="margin: 50px">
 	<table>
 	{% for word, vals in wordtrends %}
@@ -59,14 +51,13 @@
 		<td><span class='spark'>{% for v in vals %}{{v}}{%if not forloop.last %},{%endif%}{%endfor%}</span></td>
 	</tr>
 	{% endfor %}
+	</table>
 	<div style='clear:both'></div>
 </div>
 
 
 <h1>Top topics by year</h1>
 
-<p>
-	It's good to see that <b>data</b>, <b>query</b> and <b>databases</b> are never far from our minds.
 
 <div style="margin: 50px">
 	{% for year, words in topks %}
