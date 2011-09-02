@@ -40,19 +40,22 @@ def extract_words(allstems):
 
 def collect_stem_mappings():
     allstems = {}
-    
+    seenwords = set()
     for paper in get_title_iter():
         tid, title = paper.pk, paper.title
         words = words_from_title(title)
 
         for word in words:
-
+            if hash(word) in seenwords: continue
+            seenwords.add(hash(word))
+            
             stem = stemmer.stem(word)
             if stem not in allstems:
                 allstems[stem] = word
             else:
                 if len(word) < allstems[stem]:
                     allstems[stem] = word
+        if tid % 10000 == 0: print tid
     return allstems
     
 def get_title_iter():
@@ -66,6 +69,8 @@ if __name__ == '__main__':
     print "extracting words from titles"
     allstems = collect_stem_mappings()
 
+
+    print "writing out words"
 
     f = file('./allwords.txt', 'w')
     for tid, word in extract_words(allstems):
