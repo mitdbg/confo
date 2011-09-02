@@ -32,6 +32,16 @@ class LogOrCache():
 
         return retval
     def logtodb(self, cursor, table):
+        query = "COPY %s (%s) FROM STDIN WITH CSV;" % (table,
+                                                       ", ".join(self.props))
+        path = os.path.abspath(self.logname)
+                                                       
+        cmd = "cat %s | psql -c \"%s\" confo confo" % (path, query)
+        print cmd
+        os.system(cmd)
+        return
+        
+        
         cmd = "COPY %s (%s) FROM '%s' WITH CSV;" % (
                 table,
                 ", ".join(self.props),
