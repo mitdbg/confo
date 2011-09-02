@@ -35,12 +35,11 @@ def conference(request, name):
     for year in years:
         query = """select word, count(*) as c
         from conferences as c, years as y, papers as p, words as w
-        where c.short like %s and c.id = y.cid and p.cid = c.id and
+        where c.name like %s and c.id = y.cid and p.cid = c.id and
         w.pid = p.id and y.year = %s
         group by word
         order by c desc
         limit 10"""
-        raise Exception("fix this sql injection exploit")
         cursor.execute(query, ['%%%s%%' % name, year])
         data = cursor.fetchall()
         words.update(map(lambda pair:pair[0], data))
