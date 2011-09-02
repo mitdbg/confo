@@ -4,7 +4,7 @@ class Conference(models.Model):
     class Meta:
         db_table = "conferences"
     short = models.CharField(max_length=30, db_index=True)
-    full = models.TextField()
+    name = models.TextField()
 
 class ConfYear(models.Model):
     class Meta:

@@ -1,8 +1,5 @@
 import os
 import sys
-import nltk
-import sqlite3
-from nltk.corpus import stopwords
 
 ROOT = os.path.abspath('%s/../..' % os.path.abspath(os.path.dirname(__file__)))
 sys.path.append(ROOT)
@@ -12,15 +9,20 @@ from confo import settings
 setup_environ(settings)
 from confo.home.models import *
 from django.db import connection, transaction
+from dblogging import load_logger
 
 @transaction.commit_manually
 def load_db():
     try:
+        (confcache, confycache, authcache, papercache, pacache) = load_logger("r")
         cursor = connection.cursor()
-        f = file('./allwords.txt', 'r')
-        cursor.copy_from(f, 'words', columns=('pid','word'), sep=',' )
+        confcache.logtodb(cursor, "conferences")
+        confycache.logtodb(cursor, "years")
+        papercache.logtodb(cursor, "papers")
+        authcache.logtodb(cursor, "authors")
+        pacache.logtodb(cursor, "papers_authors")
         transaction.commit()
-    except Exeption, e:
+    except Exception, e:
         transaction.rollback()
         raise
 

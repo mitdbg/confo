@@ -95,12 +95,12 @@ def author(request, name):
 
     name = ' '.join(name.split("_"))
 
-    query = """select c.full, y.year, count(*) as c
+    query = """select c.name, y.year, count(*) as c
     from conferences as c, years as y, papers as p, authors as a, papers_authors as pa
     where a.name like %s and pa.paper_id = p.id and pa.author_id = a.id and
     p.cid = y.id and y.cid = c.id
-    group by c.full, y.year
-    order by c.full, y.year
+    group by c.name, y.year
+    order by c.name, y.year
     """
 
     cursor.execute(query, [name])
