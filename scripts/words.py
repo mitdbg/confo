@@ -17,11 +17,15 @@ from confo.home.models import *
 stemmer = nltk.stem.porter.PorterStemmer()
 stop = set(stopwords.words('english'))
 stop.update(['use', 'using', 'used'])
+table = ''.join(map(chr, range(256))) # translation table
+stripchars = '\'"().,:;- \t'
+badchars = '\'"().,:; \t'
 
-badchars = '\'"().,:;- \t'
+
 
 def words_from_title(title):
-    words = [word.strip(badchars).strip() for word in title.strip().split()]
+    words = [str(word).strip(stripchars).translate(table, badchars)
+             for word in title.strip().split()]
     words = set(map(lambda word: word.lower(), words))
     words = filter(lambda word: word not in stop, words)
     return words
@@ -46,16 +50,17 @@ def collect_stem_mappings():
         words = words_from_title(title)
 
         for word in words:
-            if hash(word) in seenwords: continue
-            seenwords.add(hash(word))
+            if word in seenwords: continue
+            seenwords.add(word)
             
             stem = stemmer.stem(word)
-            if stem not in allstems:
-                allstems[stem] = word
-            else:
-                if len(word) < allstems[stem]:
-                    allstems[stem] = word
+            if stem:
+                d = allstems.get(stem, {})
+                d[word] = d.get(word,0) + 1
+                allstems[stem] = d
         if tid % 10000 == 0: print tid
+
+    allstems = dict([(k, max(d.items(), key=lambda p:p[1])[0]) for k, d in allstems.items()])
     return allstems
     
 def get_title_iter():
@@ -70,8 +75,8 @@ if __name__ == '__main__':
     allstems = collect_stem_mappings()
 
 
-    print "writing out words"
 
+    print "writing out words"
     f = file('./allwords.txt', 'w')
     for tid, word in extract_words(allstems):
         print >> f, '%d,%s' % (tid, word)

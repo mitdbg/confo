@@ -3,7 +3,6 @@ from django.db import models
 class Conference(models.Model):
     class Meta:
         db_table = "conferences"
-    short = models.CharField(max_length=30, db_index=True)
     name = models.TextField()
 
 class ConfYear(models.Model):
@@ -15,7 +14,7 @@ class ConfYear(models.Model):
 class Author(models.Model):
     class Meta:
         db_table = "authors"
-    name = models.TextField(db_column="name", db_index=True)
+    name = models.TextField(db_column="name")
 
 class Paper(models.Model):
     class Meta:

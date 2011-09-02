@@ -8,7 +8,7 @@
 	
 	<script>
 	$(function() {
-		$('.spark').sparkline('html', {width: "150px", type:'bar', chartRangeMax:15});    
+		$('.spark').sparkline('html', {width: "150px", type:'bar', chartRangeMax:{{maxcount}}});    
 		var cache = {},
 		lastXhr;
 		$( "#names_input" ).autocomplete({
@@ -54,7 +54,7 @@
 	.year {font-weight: bold;}
 	b {color: #449;}
 	.footer {display: block; clear:both; text-align: center; font-size: 10pt;}
-	.ui-autocomplete  {max-height: 200px; overflow: hidden;}
+	.ui-autocomplete  {max-height: 200px; overflow: auto;}
 	</style>
 </head>
 <body>
@@ -64,7 +64,8 @@
 <div>
 <table>
 {% for k,vs in counts %}
-<tr><td class='word'>{{k}}</td><td><span class='spark'>{% for v in vs %}{{v}}{%if not forloop.last%},{%endif%}{% endfor%}</span></td></tr>
+
+<tr><td class='word'><a href="/conference/{{k}}/">{{k}}</a></td><td><span class='spark'>{% for v in vs %}{{v}}{%if not forloop.last%},{%endif%}{% endfor%}</span></td></tr>
 {% endfor %}
 </table>
 <div style='clear:both'/>

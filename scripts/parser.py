@@ -37,7 +37,7 @@ def get_conf(crossref):
 def process_paper(paperinfo):
     year = int(paperinfo["year"][0])
     title = paperinfo["title"][0]
-    conf = get_conf(paperinfo.get("crossref", [""])[0])
+#    conf = get_conf(paperinfo.get("crossref", [""])[0])
     confname = paperinfo["booktitle"][0]
     authors = paperinfo.get("author", [])
 
@@ -45,11 +45,9 @@ def process_paper(paperinfo):
         raise FormatError("bad paper year")
         return
 
-    auths = [authcache.get(author, {'name':author}, True) for author in authors]
-    return
-    c = confcache.get(conf, {'short':conf, 'name':confname}, True)
-    y = confycache.get(conf+str(year), {'cid': c, 'year': year}, True)
-
+    c = confcache.get(confname, {'name':confname}, True)
+    y = confycache.get(str(c)+str(year), {'cid': c, 'year': year}, True)
+    auths = set([authcache.get(author, {'name':author}, True) for author in authors])
 
     try:
         p = papercache.get("", {'cid':y, 'title': title}, False)
