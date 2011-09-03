@@ -24,6 +24,7 @@ from django.db.models import Count, Min, Max
 def test(request):
     return render_to_response("home/test.html", {}, context_instance=RequestContext(request))
 
+@cache_page(60 * 1000)
 def index(request):
     return render_to_response("home/index.html", {}, context_instance=RequestContext(request))
 
@@ -188,17 +189,20 @@ def author_all(request, auths=None):
     
 @cache_page(60 * 100)
 def author(request, name=None):
-    if name == None and 'name' not in request.REQUEST:
+    # check if name is unique?
+    try:
+        author = Author.objects.get(name=name)
+    except:
+        print "blah"
+        if not name: name = request.REQUEST.get('name', None)
+        if not name:
+            return author_all(request)
+        auths = Author.objects.filter(name__icontains = name)
+        if len(auths) > 1:
+            return author_all(request, cs)
         return author_all(request)
 
-    if name == None:
-        name = request.REQUEST.get('name', None)
-    auths = Author.objects.filter(name__icontains=name)
-    if len(auths) > 1:                
-        return author_all(request, auths)
-    if len(auths) == 0:
-        return author_all(request)
-    author = auths[0]
+
     
     from django.db import connection, transaction
     cursor = connection.cursor()
@@ -305,7 +309,7 @@ def author(request, name=None):
                               {'counts' : ret,
                                'overallcounts': overallcounts,
                                'maxcount' : maxcount,
-                               'author' : auths[0],
+                               'author' : author,
                                'wordyears' : {},#wordyears,
                                'allwords' : allwords,
                                'pcdata' : table,
