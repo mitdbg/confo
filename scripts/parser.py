@@ -18,18 +18,9 @@ class FormatError(Exception):
     def __init__(self, message):
         self.message = message
 
-
-
-def get_conf(crossref):
-    parts = crossref.split("/")
-    if parts != "conf" and len(parts) < 2:
-        raise FormatError("crossref '%s' was unexpected" % crossref)
-    return parts[1]
-
 def process_paper(paperinfo):
     year = int(paperinfo["year"][0])
     title = paperinfo["title"][0]
-#    conf = get_conf(paperinfo.get("crossref", [""])[0])
     confname = paperinfo["booktitle"][0]
     authors = paperinfo.get("author", [])
 
