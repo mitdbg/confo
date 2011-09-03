@@ -4,19 +4,34 @@
 	<script src="/media/js/jquery-ui.js"></script>
 	<script src="/media/js/sparklines.js"></script>
 	<script src="/media/js/main.js"></script>	
+	<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+	
+    <script type="text/javascript" src="/media/js/protovis.js"></script>
 	<link rel="stylesheet" href="/media/css/ui-lightness/jquery-ui-1.8.16.custom.css" type="text/css" media="all" /> 
 	<link rel="stylesheet" href="/media/css/style.css" type="text/css" media="all" /> 	
 	
 	<script>
 	$(function() {
-		$('.spark').sparkline('html', {width: "150px", type:'line', chartRangeMax:{% if maxcount %}{{maxcount}}{% else %}0{%endif%} });    
-		autocomplete("names_input");
+		$('.spark').sparkline('html', {width: "150px", type:'bar', chartRangeMax:{% if maxcount %}{{maxcount}}{% else %}0{%endif%} });    
+		autocomplete("auths_input","/authors/json/","/author/");
+		autocomplete("confs_input","/conferences/json/","/conference/");		
 		{% block js %}
 		{% endblock %}
 
  
 	});
+	
+	function authorform_submit() {
+		$(location).attr('href', '/author/' + $("#auths_input").val() + "/");
+		return false;
+	}
+	function confform_submit() {
+		$(location).attr('href', '/conference/' + $("#confs_input").val() + "/");
+		return false;
+	}
 	</script>
+	{% block head %}
+	{% endblock %}
 	
 	<style>
 	ul {list-style-type:none;padding-left:0;}
@@ -29,10 +44,10 @@
 	<div class="sidebar">
 		
 		<h2><a href="/author/">Authors</a></h2>
-		<input id="names_input" />
+		<form onsubmit="return authorform_submit()" action='/author/' method='GET'><input name="name" id="auths_input" /></form>
 
 		<h2><a href="/conference/">Conferences</a></h2>
-		<input id="confs_input" />
+		<form onsubmit="return confform_submit()" action='/conference/' method='GET'><input name="name" id="confs_input" /></form>
 		
 		<ul>
 		<li><a href="/conference/VLDB">VLDB</a>

@@ -14,6 +14,14 @@ a {text-decoration:none;}
 a, .link {border-bottom: 1px dotted gray; cursor: pointer;}
 a:hover, .link:hover {border-bottom: 1px solid black;}
 
+/* author stuff */
+.yeartab {list-style-type: none; margin: 0px;}
+.yeartab:hover {cursor:pointer; border-bottom: 1px dotted gray;}
+#yearbar {padding:0px}
+#yearwordcloud {margin-left: 20px}
+.wordcloud {}
+.selected {border-bottom: 1px solid blue}
+
 .spark {}
 table {float:left; margin-right: 20px; }
 p {font-size: 12pt; width: 500px; margin: 15px; }

@@ -1,6 +1,12 @@
 {% extends "home/base.html" %}
 
+{% block head %}
+{% endblock %}
+
+
 {% block js %}
+
+
 
 	$("#more").hide();
 	$("#more_link").click(function(){$("#more").toggle()})
@@ -31,21 +37,31 @@
 
 {% block css %}
 	table {float:none;}
-	.yeartab {list-style-type: none; margin: 0px;}
-	.yeartab:hover {cursor:pointer; border-bottom: 1px dotted gray;}
-	#yearbar {padding:0px}
-	#yearwordcloud {margin-left: 20px}
-	.wordcloud {}
-	.selected {border-bottom: 1px solid blue}
 {% endblock %}
 
 {% block content %}
 
-<h1 >What's hot with {{name}}?</h1>
+<h1 >What's hot with {{author.name}}?</h1>
 
 
+
+<h2>Publications overall</h2>
+<table>
+	<tr>
+		<td><span class='spark'>
+			{% for v in overallcounts %}
+				{{v}}
+				{%if not forloop.last%},{%endif%}
+			{% endfor%}
+		</span></td>
+		<td >over all venues</td>	
+	</tr>
+</table>
+
+<h2>Publications per year by venue</h2>
 <div>
 <table>
+	
 {% for k,vs in counts %}
 <tr>
 	<td><span class='spark'>
@@ -69,9 +85,11 @@
 <div style='clear:both'/>
 </div>
 
-<div style="margin-top: 50px">
-	<div id="yearbar" style="float:left">
-	</div>
+
+
+<h2>Favorite Terms</h2>
+
+	<div id="yearbar" style="float:left; display: none;"></div>
 	<div id="yearwordcloud" style="float:left">
 		<table class="wordcloud" id="wordcloudall" style="display:none; float:none;">
 			{% for word, count, size in allwords %}
@@ -81,13 +99,16 @@
 		
 		{% for year, words in wordyears.items %}
 		<table class="wordcloud" id="wordcloud{{year}}" style="display:none;">
-			{% for word, count, size in words %}
-			<tr><td>{{count}}</td><td><span style="font-size:{{size}}pt;">{{word}}</span></td></tr>
+			{% for word, pair in words.items %}
+			<tr><td>{{pair.0}}</td><td><span style="font-size:{{pair.1}}pt;">{{word}}</span></td></tr>
 			{% endfor %}
 		</table>
 		{% endfor %}
 	</div>
 	<div style="clear:both"/>
-</div>
 
+
+<h2>Trends for top terms over publication history</h2>
+	{% include 'home/test.html' %}
+	<div style="clear:both"/>
 {% endblock %}

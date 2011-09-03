@@ -3,8 +3,11 @@
 
 {% block content %}
 
-<h1>Overall # publications from {{conf.counts.minyear}} - {{conf.counts.maxyear}}</h1>
+<h1>{{conf.name}}</h1>
+<h2>Overall # publications from {{conf.counts.minyear}} - {{conf.counts.maxyear}}</h2>
 <div class='spark'>{{conf.counts.yearcounts}}</div>
+<td><span class='spark'>{% for v in vals %}{{v}}{%if not forloop.last %},{%endif%}{%endfor%}</span></td>
+
 
 <h1>Trends for top {{wordtrends|length}} keywords</h1>
 
@@ -35,7 +38,7 @@
 	<table class='topk'>
 		<tr><td class='year' colspan=2>{{year}}</td></tr>
 		{% for word, count in words %}
-			<tr><td class='count'>{{count}}</td><td >{{word}}</td></tr>
+			<tr><td class='count' style="font-size:10pt">{{count}}</td><td >{{word}}</td></tr>
 		{% endfor %}
 	</table>
 	{% endfor %}

@@ -1,4 +1,4 @@
-function autocomplete(id) {
+function autocomplete(id, jsonurl, redirecturl) {
 
 	var cache = {},
 	lastXhr;
@@ -11,7 +11,7 @@ function autocomplete(id) {
 				return;
 			}
 
-			lastXhr = $.getJSON( "/authors/json/", request, function( data, status, xhr ) {
+			lastXhr = $.getJSON( jsonurl, request, function( data, status, xhr ) {
 				cache[ term ] = data;
 				if ( xhr === lastXhr ) {
 					response( data );
@@ -21,8 +21,12 @@ function autocomplete(id) {
 		select : function(event, ui) {
 			var name = ui.item.value;
 			console.log(name)
-			$(location).attr('href',"/author/" + name + "/");//.replace(/ /gi,'_'));
+			$(location).attr('href', redirecturl + name + "/");//.replace(/ /gi,'_'));
 		
 		}
 	});
 }
+
+
+
+

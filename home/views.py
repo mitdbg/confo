@@ -13,18 +13,25 @@ from django.core.context_processors import csrf
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
+from django.views.decorators.cache import cache_page
+
 
 from django import forms
 from models import *
 
 from django.db.models import Count, Min, Max
 
+def test(request):
+    return render_to_response("home/test.html", {}, context_instance=RequestContext(request))
 
 def index(request):
-    pass
+    return render_to_response("home/index.html", {}, context_instance=RequestContext(request))
 
-def conference_all(request):
-    cs = Conference.objects.all().order_by('-counts__count')
+@cache_page(60 * 1000)
+def conference_all(request, cs=None):
+    if cs == None:
+        cs = Conference.objects.all()
+    cs = cs.order_by('-counts__count')
     paginator = Paginator(cs, 25) 
 
     # Make sure page request is an int. If not, deliver first page.
@@ -38,10 +45,14 @@ def conference_all(request):
     except:
         cs = paginator.page(paginator.num_pages)
 
-
-    maxcount = max([max(map(int,conf.counts.yearcounts.split(','))) for conf in cs.object_list])
-    ret = ConfYear.objects.aggregate(Min('year'), Max('year'))
-    nconfs, minyear, maxyear = Conference.objects.all().count(), ret['year__min'],ret['year__max']
+    if len(cs.object_list):
+        maxcount = max([max(map(int,conf.counts.yearcounts.split(','))) for conf in cs.object_list])
+        ret = ConfYear.objects.filter(conf__in=cs.object_list).aggregate(Min('year'), Max('year'))
+        nconfs, minyear, maxyear = cs.object_list.count(), ret['year__min'],ret['year__max']
+    else:
+        maxcount = 0
+        ret = []
+        nconfs, minyear, maxyear = 0,0,0
 
     return render_to_response("home/conference_all.html",
                               {'confs' : cs,
@@ -51,32 +62,45 @@ def conference_all(request):
                                'maxcount' : maxcount},
                               context_instance=RequestContext(request))
 
-
+@cache_page(60 * 1000)
 def conference(request, name):
+    # check if name is unique?
+    try:
+        Conference.objects.get(name=name)
+    except:
+        cs = Conference.objects.filter(name__icontains = name)
+        if len(cs) != 1:
+            return conference_all(request, cs)
+
+
+    
     from django.db import connection, transaction
     cursor = connection.cursor()
 
-    cyears = ConfYear.objects.filter(conf__name__icontains = name)
+    cyears = ConfYear.objects.filter(conf__name = name)
     years = sorted(set([cyear.year for cyear in cyears]))
+    years = range(min(years), max(years) + 1)
 
     topks = []
+    overall = []
     words = {}
     for year in years:
         query = """select word, count(*) as c
         from conferences as c, years as y, papers as p, words as w
         where c.id = y.cid and p.cid = y.id and w.pid = p.id and
-        c.name ilike %s and y.year = %s 
+        c.name = %s and y.year = %s 
         group by word
         order by c desc
         limit 10"""
-        cursor.execute(query, ['%%%s%%' % name, year])
+        cursor.execute(query, [name, year])
         data = cursor.fetchall()
 
         for word, c in data:
             if word not in words: words[word] = c
             words[word] = max(c, words[word])
-        
-        topks.append((year, data))
+        if len(data):
+            topks.append((year, data))
+        overall.append(sum([p[1] for p in data]))
 
     words = sorted(words.items(), key=lambda p:p[1], reverse=True)[:20]
 
@@ -86,11 +110,11 @@ def conference(request, name):
         query = """select year, count(*) as c
         from conferences as c, years as y, papers as p, words as w
         where w.pid = p.id and p.cid = y.id and y.cid = c.id and
-        w.word = %s and c.name like %s        
+        w.word = %s and c.name = %s
         group by year
         order by year asc"""
         
-        cursor.execute(query, [word, '%%%s%%' % name])
+        cursor.execute(query, [word, name])
         d = dict(cursor.fetchall())
         trend = [d.get(year, 0) for year in years]
         wordtrends.append((word, trend))
@@ -100,24 +124,32 @@ def conference(request, name):
     cursor.close()
 
 
-
-    confs = Conference.objects.filter(name__icontains=name)
-
-    ret = ConfYear.objects.aggregate(Min('year'), Max('year'))
-    allminyear, allmaxyear = ret['year__min'], ret['year__max']
-    allyears = range(allminyear, allmaxyear+1)
-    if len(confs):
-        conf = confs[0]
-        minidx, maxidx = allyears.index(conf.counts.minyear), allyears.index(conf.counts.maxyear)
-        print minidx, maxidx, 
-        conf.counts.yearcounts = ','.join(conf.counts.yearcounts.split(',')[minidx:maxidx+1])
+    
+    conf = Conference.objects.get(name=name)
     
     return render_to_response("home/conference.html",
                               {'topks' : topks,
                                'conf' : conf,
+                               'overall' : overall,
                                'wordtrends' : wordtrends,
                                'maxcount' : maxcount},
                               context_instance=RequestContext(request))
+
+
+def conferences_json(request):
+    import json    
+    term = request.REQUEST.get('term',None)
+    if term:
+        confs = Conference.objects.filter(name__icontains=term).order_by('-counts__count')[:20]
+    else:
+        confs = []
+    names = []
+    for c in confs:
+        if len(c.name) > 20:
+            names.append('%s...' % c.name[:20])
+        else:
+            names.append(c.name)
+    return HttpResponse(json.dumps(names), mimetype='application/json')
 
 
 def authors_json(request):
@@ -130,8 +162,12 @@ def authors_json(request):
     names = [auth.name for auth in auths]
     return HttpResponse(json.dumps(names), mimetype='application/json')
 
-def author_all(request):
-    auths = Author.objects.filter(pubcount__gt=0).order_by('-pubcount')
+
+@cache_page(60 * 100)
+def author_all(request, auths=None):
+    if auths == None:
+        auths = Author.objects.all()
+    auths = auths.filter(pubcount__gt=0).order_by('-pubcount')
 
     paginator = Paginator(auths, 25) 
 
@@ -146,21 +182,31 @@ def author_all(request):
     except:
         auths = paginator.page(paginator.num_pages)
 
-    print auths.object_list
     return render_to_response("home/author_all.html",
                               {'auths' : auths},
                               context_instance=RequestContext(request))
     
+@cache_page(60 * 100)
+def author(request, name=None):
+    if name == None and 'name' not in request.REQUEST:
+        return author_all(request)
 
-def author(request, name):
+    if name == None:
+        name = request.REQUEST.get('name', None)
+    auths = Author.objects.filter(name__icontains=name)
+    if len(auths) > 1:                
+        return author_all(request, auths)
+    if len(auths) == 0:
+        return author_all(request)
+    author = auths[0]
+    
     from django.db import connection, transaction
     cursor = connection.cursor()
 
-    #name = ' '.join(name.split("_"))
 
     query = """select c.name, y.year, count(*) as c
     from conferences as c, years as y, papers as p, authors as a, papers_authors as pa
-    where a.name like %s and pa.paper_id = p.id and pa.author_id = a.id and
+    where a.name ilike %s and pa.paper_id = p.id and pa.author_id = a.id and
     p.cid = y.id and y.cid = c.id
     group by c.name, y.year
     order by c.name, y.year
@@ -168,13 +214,16 @@ def author(request, name):
 
     cursor.execute(query, ['%%%s%%' % name])
     confdata = {}
+    overallcounts = {}
     years = set()
+
     for row in cursor:
         print row
         confname, year, c = row
         if confname not in confdata: confdata[confname] = {}
         confdata[confname][year] = c
         years.add(year)
+        overallcounts[year] = overallcounts.get(year,0) + c
     years = range(min(years), max(years) + 1)
     
     ret = []
@@ -183,13 +232,12 @@ def author(request, name):
         counts = [vals.get(year,0) for year in years]
         ret.append((confname, counts))
         maxcount = max(maxcount, max(counts))
+    overallcounts = [overallcounts.get(year,0) for year in years]
 
     ret.sort(key=lambda (cname,counts): max(counts), reverse=True)
 
 
 
-
-    # terms information
     
     # terms information
     query = """select word, count(*) as c
@@ -215,27 +263,53 @@ def author(request, name):
         order by y.year asc, c desc
         """
         cursor.execute(query, ['%%%s%%' % name])
-        words = []
+        uniquewords = {}
         for y, word, c in cursor:
             words = wordyears.get(y, [])
             if len(words) > 20: continue
             words.append((word, c))
             wordyears[y] = words
+            uniquewords[word] = uniquewords.get(word,0)+c
 
         for y in wordyears.keys():
-            words = wordyears[y]
-            words = map(lambda (w,c): (w,c, int(math.ceil(25 * float(c) / maxwordcount)) + 5), words)
+            words = wordyears[y]            
+            words = map(lambda (w,c): (w,(c, int(math.ceil(25 * float(c) / maxwordcount)) + 5)), words)
+            words = dict(words)
             wordyears[y] = words
 
+        uniquewords = [p[0] for p in sorted(uniquewords.items(), key=lambda p: p[1], reverse=True)[:10]]
+        years = range(min(wordyears.keys()), max(wordyears.keys())+1)
+        labels = []
+        labels.extend(map(str,years))
+        labels.append('name')
+        table = []
+
+
+        labels = dict([(label, {"name" : label, 'unit': ''}) for label in labels])
+
         
+        for word in uniquewords:
+            row = {'name' : word}
+            prev = 0
+            for year in years:
+                cur = wordyears.get(year,{}).get(word, (0,0))[0]
+                row[str(year)] = cur
+                prev = cur
+            table.append(row)
+        import json
+        labels = json.dumps(labels)            
+        table = json.dumps(table)
     
                                            
     return render_to_response("home/author.html",
                               {'counts' : ret,
+                               'overallcounts': overallcounts,
                                'maxcount' : maxcount,
-                               'name' : name,
-                               'wordyears' : wordyears,
-                               'allwords' : allwords},
+                               'author' : auths[0],
+                               'wordyears' : {},#wordyears,
+                               'allwords' : allwords,
+                               'pcdata' : table,
+                               'pclabels' : labels},
                               context_instance=RequestContext(request))
 
     

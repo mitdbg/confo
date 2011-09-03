@@ -18,17 +18,21 @@ stemmer = nltk.stem.porter.PorterStemmer()
 stop = set(stopwords.words('english'))
 stop.update(['use', 'using', 'used'])
 table = ''.join(map(chr, range(256))) # translation table
-stripchars = '\'"().,:;- \t'
-badchars = '\'"().,:; \t'
+stripchars = '- \t'
+badchars = '\'"().,:; \t?!@'
 
 
 
 def words_from_title(title):
     words = [str(word).strip(stripchars).translate(table, badchars)
-             for word in title.strip().split()]
-    words = set(map(lambda word: word.lower(), words))
-    words = filter(lambda word: word not in stop, words)
+             for word in title.split()]
+    words = map(lambda word: word.lower(), words)
+    words = set(filter(lambda word: word not in stop, words))
     return words
+
+def get_title_iter():
+    for paper in Paper.objects.all():
+        yield paper
 
 def extract_words(allstems):
     allstems = allstems
@@ -37,43 +41,23 @@ def extract_words(allstems):
         words = words_from_title(title)
         stems = map(stemmer.stem, words)
         words = filter(lambda stem:stem, map(lambda stem: allstems.get(stem,None), stems))
-
+        if tid % 10000 == 0: print tid
         for word in words:
             yield tid, word
         
-
-def collect_stem_mappings():
-    allstems = {}
-    seenwords = set()
-    for paper in get_title_iter():
-        tid, title = paper.pk, paper.title
-        words = words_from_title(title)
-
-        for word in words:
-            if word in seenwords: continue
-            seenwords.add(word)
-            
-            stem = stemmer.stem(word)
-            if stem:
-                d = allstems.get(stem, {})
-                d[word] = d.get(word,0) + 1
-                allstems[stem] = d
-        if tid % 10000 == 0: print tid
-
-    allstems = dict([(k, max(d.items(), key=lambda p:p[1])[0]) for k, d in allstems.items()])
-    return allstems
-    
-def get_title_iter():
-    for paper in Paper.objects.all():
-        yield paper
     
 
 
 if __name__ == '__main__':
     from django.db import connection, transaction
-    print "extracting words from titles"
-    allstems = collect_stem_mappings()
 
+
+    f = file('./stems.txt', 'r')
+    allstems = {}
+    for l in f:
+        k,v = tuple(l.strip().split(','))
+        allstems[k] = v
+    f.close()
 
 
     print "writing out words"

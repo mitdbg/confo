@@ -47,8 +47,8 @@ class LogOrCache():
 
         return retval
     def logtodb(self, cursor):
-        for idx in self.indices:
-            self.execdb("DROP INDEX %s;" % (idx[0]))
+        # for idx in self.indices:
+        #     self.execdb("DROP INDEX %s;" % (idx[0]))
 
         query = "COPY %s (%s) FROM STDIN WITH CSV;" % (self.tablename,
                                                        ", ".join(self.props))
@@ -57,12 +57,20 @@ class LogOrCache():
         print cmd
         os.system(cmd)
 
-        for idx in self.indices:
-            fields = ", ".join(idx[1:])
-            self.execdb("CREATE INDEX %s ON %s (%s);" % 
-                        (idx[0], self.tablename, fields))
+        # for idx in self.indices:
+        #     fields = ", ".join(idx[1:])
+        #     self.execdb("CREATE INDEX %s ON %s (%s);" % 
+        #                 (idx[0], self.tablename, fields))
 
     def execdb(self, query):
         cmd = "psql -c \"%s\" confo confo" % (query)
         print cmd
         os.system(cmd)
+
+
+
+
+
+
+
+
