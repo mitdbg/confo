@@ -1,5 +1,5 @@
 # import python libraries
-import sys,os
+import sys,os,math
 
 # import django modules
 from django.http import HttpResponseRedirect, HttpResponse
@@ -12,26 +12,52 @@ from django.contrib.auth.models import User
 from django.core.context_processors import csrf
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator, InvalidPage, EmptyPage
+
 from django import forms
 from models import *
 
-from django.db.models import Count
+from django.db.models import Count, Min, Max
 
 
 def index(request):
     pass
 
-#def conference_all(request):
-#    Conference.objects.
+def conference_all(request):
+    cs = Conference.objects.all().order_by('-counts__count')
+    paginator = Paginator(cs, 25) 
+
+    # Make sure page request is an int. If not, deliver first page.
+    try:
+        page = int(request.GET.get('page', '1'))
+    except ValueError:
+        page = 1
+
+    try:
+        cs = paginator.page(page)
+    except:
+        cs = paginator.page(paginator.num_pages)
+
+
+    maxcount = max([max(map(int,conf.counts.yearcounts.split(','))) for conf in cs.object_list])
+    ret = ConfYear.objects.aggregate(Min('year'), Max('year'))
+    nconfs, minyear, maxyear = Conference.objects.all().count(), ret['year__min'],ret['year__max']
+
+    return render_to_response("home/conference_all.html",
+                              {'confs' : cs,
+                               'minyear' : minyear,
+                               'maxyear' : maxyear,
+                               'nconfs' : nconfs,
+                               'maxcount' : maxcount},
+                              context_instance=RequestContext(request))
+
 
 def conference(request, name):
     from django.db import connection, transaction
     cursor = connection.cursor()
 
-    print name
     cyears = ConfYear.objects.filter(conf__name__icontains = name)
     years = sorted(set([cyear.year for cyear in cyears]))
-    print "years", years
 
     topks = []
     words = {}
@@ -73,10 +99,22 @@ def conference(request, name):
     wordtrends.sort(key=lambda pair: max(pair[1]), reverse=True)
     cursor.close()
 
-    
+
+
+    confs = Conference.objects.filter(name__icontains=name)
+
+    ret = ConfYear.objects.aggregate(Min('year'), Max('year'))
+    allminyear, allmaxyear = ret['year__min'], ret['year__max']
+    allyears = range(allminyear, allmaxyear+1)
+    if len(confs):
+        conf = confs[0]
+        minidx, maxidx = allyears.index(conf.counts.minyear), allyears.index(conf.counts.maxyear)
+        print minidx, maxidx, 
+        conf.counts.yearcounts = ','.join(conf.counts.yearcounts.split(',')[minidx:maxidx+1])
     
     return render_to_response("home/conference.html",
                               {'topks' : topks,
+                               'conf' : conf,
                                'wordtrends' : wordtrends,
                                'maxcount' : maxcount},
                               context_instance=RequestContext(request))
@@ -86,14 +124,29 @@ def authors_json(request):
     import json    
     term = request.REQUEST.get('term',None)
     if term:
-        names = [a.name for a in Author.objects.filter(name__icontains=term).annotate(c=Count('papers')).order_by('-c')[:50]]
+        auths = Author.objects.filter(name__icontains=term).order_by('-pubcount')[:20]
     else:
-        names = []
+        auths = []
+    names = [auth.name for auth in auths]
     return HttpResponse(json.dumps(names), mimetype='application/json')
 
 def author_all(request):
-    auths = Author.objects.annotate(c=Count('papers')).order_by('-c')[:20]
-    auths = [[a.name, a.c, a.name.replace(' ','_')] for a in auths]
+    auths = Author.objects.filter(pubcount__gt=0).order_by('-pubcount')
+
+    paginator = Paginator(auths, 25) 
+
+    # Make sure page request is an int. If not, deliver first page.
+    try:
+        page = int(request.GET.get('page', '1'))
+    except ValueError:
+        page = 1
+
+    try:
+        auths = paginator.page(page)
+    except:
+        auths = paginator.page(paginator.num_pages)
+
+    print auths.object_list
     return render_to_response("home/author_all.html",
                               {'auths' : auths},
                               context_instance=RequestContext(request))
@@ -103,7 +156,7 @@ def author(request, name):
     from django.db import connection, transaction
     cursor = connection.cursor()
 
-    name = ' '.join(name.split("_"))
+    #name = ' '.join(name.split("_"))
 
     query = """select c.name, y.year, count(*) as c
     from conferences as c, years as y, papers as p, authors as a, papers_authors as pa
@@ -130,10 +183,59 @@ def author(request, name):
         counts = [vals.get(year,0) for year in years]
         ret.append((confname, counts))
         maxcount = max(maxcount, max(counts))
+
+    ret.sort(key=lambda (cname,counts): max(counts), reverse=True)
+
+
+
+
+    # terms information
+    
+    # terms information
+    query = """select word, count(*) as c
+    from words as w, authors as a, papers as p, papers_authors as ap
+    where ap.paper_id = p.id and ap.author_id = a.id and
+    a.name ilike %s and w.pid = p.id
+    group by w.word
+    order by c desc
+    limit 20
+    """
+    cursor.execute(query, ['%%%s%%' % name])
+    allwords = [(w,c) for w,c in cursor]
+    wordyears = {}
+    if len(allwords):
+        maxwordcount = max(allwords, key=lambda p: p[1])[1]
+        allwords = map(lambda (w,c): (w,c, int(math.ceil(25.0 * c / maxwordcount)) + 5), allwords)
+
+        query = """select y.year, word, count(*) as c
+        from words as w, authors as a, papers as p, papers_authors as ap, years as y
+        where ap.paper_id = p.id and ap.author_id = a.id and p.cid = y.id and
+        a.name ilike %s and w.pid = p.id
+        group by w.word, y.year
+        order by y.year asc, c desc
+        """
+        cursor.execute(query, ['%%%s%%' % name])
+        words = []
+        for y, word, c in cursor:
+            words = wordyears.get(y, [])
+            if len(words) > 20: continue
+            words.append((word, c))
+            wordyears[y] = words
+
+        for y in wordyears.keys():
+            words = wordyears[y]
+            words = map(lambda (w,c): (w,c, int(math.ceil(25 * float(c) / maxwordcount)) + 5), words)
+            wordyears[y] = words
+
+        
+    
                                            
     return render_to_response("home/author.html",
                               {'counts' : ret,
-                               'maxcount' : maxcount},
+                               'maxcount' : maxcount,
+                               'name' : name,
+                               'wordyears' : wordyears,
+                               'allwords' : allwords},
                               context_instance=RequestContext(request))
 
     

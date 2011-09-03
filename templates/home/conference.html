@@ -1,55 +1,26 @@
+{% extends 'home/base.html' %}
 
-<html>
-<head>
-	<script src="/media/js/jquery.js"></script>
-	<script src="/media/js/jquery-ui.js"></script>
-	<script src="/media/js/sparklines.js"></script>
-	
-	<script>
-	$(function() {
-		$('.spark').sparkline('html', {width: "150px", height: "30px", type:'line', chartRangeMax:{{maxcount}}});     
-	});
-	</script>
-	
-	<style>
-	@import url(http://fonts.googleapis.com/css?family=Open+Sans:300);
-	body { font-family: open sans;}
-	div.container {}
-	.word {font-family: Open Sans; font-size: 12pt;}
-	td {text-align: right;}
-	.spark {}
-	table {float:left; margin-right: 20px; }
-	p {font-size: 12pt; width: 500px; margin: 15px; }
-	p.wide {width: 700px;}
-	h1 {width: 15em;  margin-top: 30px; }
-	.count {font-size: 10pt;}
-	table.topk {margin: 20px;}
-	.year {font-weight: bold;}
-	b {color: #449;}
-	.footer {display: block; clear:both; text-align: center; font-size: 10pt;}
-	</style>
-</head>
-<body>
-<h1 >What's hot in databases?</h1>
 
-<p >
-	Trending topics in VLDB, via key words in the titles of publications from 2000 to 2011.
-	I didn't clean up the data, so there may be duplicate entries (e.g., <b>query</b> and <b>queries</b>)  
-	<a href="./alldata.txt">raw data</a>
-</p>
-<p>
-	(Thanks to @samrmadden for the titles)
-</p>
+{% block content %}
 
-<h1>Trends by keyword</h1>
+<h1>Overall # publications from {{conf.counts.minyear}} - {{conf.counts.maxyear}}</h1>
+<div class='spark'>{{conf.counts.yearcounts}}</div>
 
-<div style="margin: 50px">
+<h1>Trends for top {{wordtrends|length}} keywords</h1>
+
+<div style="margin: 10px">
 	<table>
 	{% for word, vals in wordtrends %}
 	<tr>
 		<td class='word'>{{word}}</td>
 		<td><span class='spark'>{% for v in vals %}{{v}}{%if not forloop.last %},{%endif%}{%endfor%}</span></td>
 	</tr>
+	
+	{% if forloop.counter|divisibleby:10 %}
+	</table>
+	<table>
+	{%endif%}
+	
 	{% endfor %}
 	</table>
 	<div style='clear:both'></div>
@@ -59,21 +30,21 @@
 <h1>Top topics by year</h1>
 
 
-<div style="margin: 50px">
+<div style="margin: 10px">
 	{% for year, words in topks %}
 	<table class='topk'>
 		<tr><td class='year' colspan=2>{{year}}</td></tr>
 		{% for word, count in words %}
-			<tr><td class='word'>{{word}}</td><td class='count'>{{count}}</td></tr>
+			<tr><td class='count'>{{count}}</td><td >{{word}}</td></tr>
 		{% endfor %}
 	</table>
 	{% endfor %}
 
 </div>
 
+{% endblock %}
 
 
-<div class='footer'><a href="http://www.sirrice.com/">eugene wu</a> &copy; 2011</div>
 
 
 </body>

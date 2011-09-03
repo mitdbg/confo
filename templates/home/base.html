@@ -1,0 +1,51 @@
+<html>
+<head>
+	<script src="/media/js/jquery.js"></script>
+	<script src="/media/js/jquery-ui.js"></script>
+	<script src="/media/js/sparklines.js"></script>
+	<script src="/media/js/main.js"></script>	
+	<link rel="stylesheet" href="/media/css/ui-lightness/jquery-ui-1.8.16.custom.css" type="text/css" media="all" /> 
+	<link rel="stylesheet" href="/media/css/style.css" type="text/css" media="all" /> 	
+	
+	<script>
+	$(function() {
+		$('.spark').sparkline('html', {width: "150px", type:'line', chartRangeMax:{% if maxcount %}{{maxcount}}{% else %}0{%endif%} });    
+		autocomplete("names_input");
+		{% block js %}
+		{% endblock %}
+
+ 
+	});
+	</script>
+	
+	<style>
+	ul {list-style-type:none;padding-left:0;}
+	{% block css %}{% endblock %}
+	</style>
+</head>
+<body>
+	
+	
+	<div class="sidebar">
+		
+		<h2><a href="/author/">Authors</a></h2>
+		<input id="names_input" />
+
+		<h2><a href="/conference/">Conferences</a></h2>
+		<input id="confs_input" />
+		
+		<ul>
+		<li><a href="/conference/VLDB">VLDB</a>
+		</ul>
+		
+		{% block sidebar %}{% endblock %}
+	</div>
+	<div class="content">
+		{% block content %} something	{% endblock %}		
+	</div>
+	<div style="clear:both"/>
+
+
+	<div class='footer'><a href="http://www.sirrice.com/">eugene wu</a> &copy; 2011</div>
+</body>
+</html>

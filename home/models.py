@@ -5,6 +5,15 @@ class Conference(models.Model):
         db_table = "conferences"
     name = models.TextField()
 
+class ConferenceCounts(models.Model):
+    class Meta:
+        db_table = "conf_counts"
+    conf = models.OneToOneField(Conference, db_column="cid", related_name="counts")
+    count = models.IntegerField()
+    minyear = models.IntegerField()
+    maxyear = models.IntegerField()
+    yearcounts = models.TextField()
+
 class ConfYear(models.Model):
     class Meta:
         db_table = "years"
@@ -15,6 +24,7 @@ class Author(models.Model):
     class Meta:
         db_table = "authors"
     name = models.TextField(db_column="name")
+    pubcount = models.IntegerField(default=-1, db_column='pubcount')
 
 class Paper(models.Model):
     class Meta:

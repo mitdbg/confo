@@ -1,0 +1,52 @@
+{% extends 'home/base.html' %}
+
+
+{% block css %}
+th {text-align: left}
+{% endblock %}
+
+{% block sidebar %}
+{% endblock %}
+
+{% block content %}
+
+<h1>{{nconfs}} Conferences between {{minyear}} and {{maxyear}}</h1>
+
+<div>
+<table>
+	<tr>
+		<th>Years</th>
+		<th style="width:8em"># Papers</th><th>Conference Name</th><th>Publications/year</th>
+	</tr>
+{% for conf in confs.object_list %}
+<tr>
+	<td style="width:8em; font-size: 10pt">{{conf.counts.minyear}} - {{conf.counts.maxyear}}</td>
+	<td style="font-size:10pt">{{conf.counts.count}}</td>
+	<td><a href="/conference/{{conf.name}}/">{{conf.name}}</a></td>
+	<td><span class='spark'>{{conf.counts.yearcounts}}</span></td>
+</tr>
+{% endfor %}
+</table>
+
+
+<div style="clear:both"/>
+</div>
+
+<div class="pagination">
+    <span class="step-links">
+        {% if confs.has_previous %}
+            <a  href="?page={{ confs.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ confs.number }} of {{ confs.paginator.num_pages }}.
+        </span>
+
+        {% if confs.has_next %}
+            <a href="?page={{ confs.next_page_number }}">next</a>
+        {% endif %}
+    </span>
+</div>
+
+
+{% endblock %}

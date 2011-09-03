@@ -1,49 +1,33 @@
+{% extends 'home/base.html' %}
 
-<html>
-<head>
-	<script src="/media/js/jquery.js"></script>
-	<script src="/media/js/jquery-ui.js"></script>
-	<script src="/media/js/sparklines.js"></script>
-	<link rel="stylesheet" href="/media/css/ui-lightness/jquery-ui-1.8.16.custom.css" type="text/css" media="all" /> 
-	
-	<script>
-	$(function() {
-		$('.spark').sparkline('html', {width: "150px"});    
-}
-	</script>
-	
-	<style>
-	@import url(http://fonts.googleapis.com/css?family=Open+Sans:300);
-	body { font-family: open sans;}
-	div.container {}
-	.word {font-family: Open Sans; font-size: 12pt;}
-	td {text-align: right;}
-	.spark {}
-	table {float:left; margin-right: 20px; }
-	p {font-size: 12pt; width: 500px; margin: 15px; }
-	p.wide {width: 700px;}
-	h1 {width: 15em;  margin-top: 30px; }
-	.count {font-size: 10pt;}
-	table.topk {margin: 20px;}
-	.year {font-weight: bold;}
-	b {color: #449;}
-	.footer {display: block; clear:both; text-align: center; font-size: 10pt;}
-	.ui-autocomplete  {max-height: 200px; overflow: hidden;}
-	</style>
-</head>
-<body>
+{% block content %}
 <h1 >Who's hot in databases?</h1>
 
+<div>
+	
 <table>
-{% for auth in auths %}
-<tr><td><a href="/author/{{auth.2}}">{{auth.0}}</a> </td><td>{{auth.1}}</td></tr>
+{% for auth in auths.object_list %}
+<tr><td>{{auth.pubcount}}</td><td><a href="/author/{{auth.name}}">{{auth.name}}</a> </td></tr>
 {% endfor %}
 </table>
+<div style="clear:both"/>
+</div>
+
+<div class="pagination">
+    <span class="step-links">
+        {% if auths.has_previous %}
+            <a href="?page={{ auths.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ auths.number }} of {{ auths.paginator.num_pages }}.
+        </span>
+
+        {% if auths.has_next %}
+            <a href="?page={{ auths.next_page_number }}">next</a>
+        {% endif %}
+    </span>
+</div>
 
 
-
-<div class='footer'><a href="http://www.sirrice.com/">eugene wu</a> &copy; 2011</div>
-
-
-</body>
-</html>
+{% endblock %}

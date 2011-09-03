@@ -1,77 +1,93 @@
+{% extends "home/base.html" %}
 
-<html>
-<head>
-	<script src="/media/js/jquery.js"></script>
-	<script src="/media/js/jquery-ui.js"></script>
-	<script src="/media/js/sparklines.js"></script>
-	<link rel="stylesheet" href="/media/css/ui-lightness/jquery-ui-1.8.16.custom.css" type="text/css" media="all" /> 
-	
-	<script>
-	$(function() {
-		$('.spark').sparkline('html', {width: "150px", type:'bar', chartRangeMax:{{maxcount}}});    
-		var cache = {},
-		lastXhr;
-		$( "#names_input" ).autocomplete({
-			minLength: 2,
-			source: function( request, response ) {
-				var term = request.term;
-				if ( term in cache ) {
-					response( cache[ term ] );
-					return;
-				}
+{% block js %}
 
-				lastXhr = $.getJSON( "/authors/json/", request, function( data, status, xhr ) {
-					cache[ term ] = data;
-					if ( xhr === lastXhr ) {
-						response( data );
-					}
-				});
-			},
-			select : function(event, ui) {
-				var name = ui.item.value;
-				console.log(name)
-				$(location).attr('href',"/author/" + name.replace(/ /gi,'_'));
-				
-			}
-		});
- 
-	});
-	</script>
+	$("#more").hide();
+	$("#more_link").click(function(){$("#more").toggle()})
+
+	function toggle_wordcloud(suffix) {
+		$(".yeartab").removeClass("selected");
+		$(".wordcloud").hide()		
+		$("#yeartab" + suffix).addClass("selected");
+		$("#wordcloud" + suffix).show()		
+	}
+
+	var yearbar = $("#yearbar");
 	
-	<style>
-	@import url(http://fonts.googleapis.com/css?family=Open+Sans:300);
-	body { font-family: open sans;}
-	div.container {}
-	.word {font-family: Open Sans; font-size: 12pt; max-width: 400px;}
-	td {text-align: right;}
-	.spark {}
-	table {float:left; margin-right: 20px; }
-	p {font-size: 12pt; width: 500px; margin: 15px; }
-	p.wide {width: 700px;}
-	h1 {width: 15em;  margin-top: 30px; }
-	.count {font-size: 10pt;}
-	table.topk {margin: 20px;}
-	.year {font-weight: bold;}
-	b {color: #449;}
-	.footer {display: block; clear:both; text-align: center; font-size: 10pt;}
-	.ui-autocomplete  {max-height: 200px; overflow: auto;}
-	</style>
-</head>
-<body>
-<h1 >What's hot in databases?</h1>
-<input id="names_input" />
+	$("<div class='yeartab' id='yeartaball'>All Years</a>").click(function() {
+		toggle_wordcloud("all");
+	}).appendTo(yearbar);
+
+	{% for year in wordyears %}
+	$("<div class='yeartab' id='yeartab{{year}}'>{{year}}</a>").click(function() {
+		toggle_wordcloud("{{year}}");
+	}).appendTo(yearbar);
+	{% endfor %}
+	
+	
+	$("#yeartaball").click();
+
+{% endblock %}
+
+{% block css %}
+	table {float:none;}
+	.yeartab {list-style-type: none; margin: 0px;}
+	.yeartab:hover {cursor:pointer; border-bottom: 1px dotted gray;}
+	#yearbar {padding:0px}
+	#yearwordcloud {margin-left: 20px}
+	.wordcloud {}
+	.selected {border-bottom: 1px solid blue}
+{% endblock %}
+
+{% block content %}
+
+<h1 >What's hot with {{name}}?</h1>
+
 
 <div>
 <table>
 {% for k,vs in counts %}
+<tr>
+	<td><span class='spark'>
+		{% for v in vs %}
+			{{v}}
+			{%if not forloop.last%},{%endif%}
+		{% endfor%}
+	</span></td>
+	<td ><a class="link" href="/conference/{{k}}/">{{k}}</a></td>	
+</tr>
 
-<tr><td class='word'><a href="/conference/{{k}}/">{{k}}</a></td><td><span class='spark'>{% for v in vs %}{{v}}{%if not forloop.last%},{%endif%}{% endfor%}</span></td></tr>
+{% if forloop.counter == 10 %}
+</table>
+<div><span class="link" id="more_link">show {{ counts|length|add:"-10"}} more</span></div>
+<table id="more" >
+{% endif %}
+
+
 {% endfor %}
 </table>
 <div style='clear:both'/>
 </div>
-<div class='footer'><a href="http://www.sirrice.com/">eugene wu</a> &copy; 2011</div>
 
+<div style="margin-top: 50px">
+	<div id="yearbar" style="float:left">
+	</div>
+	<div id="yearwordcloud" style="float:left">
+		<table class="wordcloud" id="wordcloudall" style="display:none; float:none;">
+			{% for word, count, size in allwords %}
+			<tr><td>{{count}}</td><td><span style="font-size:{{size}}pt;">{{word}}</span></td></tr>
+			{% endfor %}
+		</table>		
+		
+		{% for year, words in wordyears.items %}
+		<table class="wordcloud" id="wordcloud{{year}}" style="display:none;">
+			{% for word, count, size in words %}
+			<tr><td>{{count}}</td><td><span style="font-size:{{size}}pt;">{{word}}</span></td></tr>
+			{% endfor %}
+		</table>
+		{% endfor %}
+	</div>
+	<div style="clear:both"/>
+</div>
 
-</body>
-</html>
+{% endblock %}
