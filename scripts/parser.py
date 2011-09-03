@@ -1,9 +1,7 @@
 import sys, os
-from nltk.corpus import stopwords
 from dblogging import load_logger
-import xml.parsers.expat
 import time
-
+import re
 
 ROOT = os.path.abspath('%s/../..' % os.path.abspath(os.path.dirname(__file__)))
 sys.path.append(ROOT)
@@ -13,7 +11,6 @@ from confo import settings
 setup_environ(settings)
 
 from confo.home.models import *
-from django.db import connection, transaction
 
 (confcache, confycache, authcache, papercache, pacache) = load_logger("w")
 
@@ -22,11 +19,6 @@ class FormatError(Exception):
         self.message = message
 
 
-paperinfo = None
-curkey = None
-stop = set(stopwords.words('english'))
-counter = 0
-MAXCOUNTER = 200500000
 
 def get_conf(crossref):
     parts = crossref.split("/")
@@ -56,55 +48,48 @@ def process_paper(paperinfo):
     except:
         raise FormatError("error building paper")
 
-def dump_paperauths():
-    cursor = connection.cursor()
-    paperauths = file(PAPERAUTHS, "r")
-    cursor.copy_from(paperauths, 'papers_authors', columns=('paper_id','author_id'), sep=',' )
-    paperauths.close()
-
-@transaction.commit_manually    
 def parse(filename):
-    storekeys = set(("year", "title", "author", "crossref", 'booktitle'))
+    storekeys = ("year", "title", "author", 'booktitle', 'journal')
+    namemap = {"year":"year", "title": "title", "author": "author", "booktitle": "booktitle", "journal": "booktitle"}
+    start = ("<inproceedings", "<article")
+    end = ("</inproceedings>", "</article>")
+    storeres = [re.compile("<(%s)>(.*)</%s>" % (key, key)) for key in storekeys]
+    
 
-    def start_element(name, attrs):
-        global paperinfo, curkey
-        if name == "inproceedings":
-            paperinfo = {}
-        elif paperinfo != None and name in storekeys:
-            curkey = name
-    def end_element(name):
-        global paperinfo, curkey, counter
-        try:
-            if paperinfo != None and name == "inproceedings":
-                if counter < MAXCOUNTER:
-                    process_paper(paperinfo)
-                paperinfo = None
-                counter += 1
-                if counter % 10000 == 0:
-                    print counter, time.time()
-        except FormatError,  e:
-            sys.stderr.write("Formatting exception: %s on %s\n" % (e.message, repr(paperinfo)))
-            
-    def char_data(data):
-        global paperinfo, curkey
-
-        if curkey != None:
-            vals = paperinfo.get(curkey, [])
-            vals.append(data)
-            paperinfo[curkey] = vals
-            curkey = None
-    try:
-        p = xml.parsers.expat.ParserCreate()
-        p.StartElementHandler = start_element
-        p.EndElementHandler = end_element
-        p.CharacterDataHandler = char_data
-        p.ParseFile(open(filename))
-#        dump_paperauths()
-        transaction.commit()
-    except Exception, e:
-        print "in exception"
-        transaction.rollback()
-        raise
+    toparse = open(filename, "r")
+    paperinfo = None
+    counter = 0
+    for line in toparse:
+        if paperinfo == None:
+            for tag in start: 
+                if line.startswith(tag):
+                    paperinfo = {}
+                    break
+        else:
+            noend = True
+            for tag in end:
+                if line.startswith(tag):
+                    try:
+                        process_paper(paperinfo)
+                    except FormatError,  e:
+                        sys.stderr.write("Formatting exception: %s on %s\n" % (e.message, repr(paperinfo)))
+                        raise
+                            
+                    paperinfo = None
+                    counter += 1
+                    if counter % 10000 == 0:
+                        print counter, time.time()
+                    noend = False
+                    break
+            if noend:
+                for reg in storeres:
+                    match = reg.search(line)
+                    if match:
+                        key = namemap[match.group(1)]
+                        vals = paperinfo.get(key, [])
+                        vals.append(match.group(2))
+                        paperinfo[key] = vals
+                        break
 
 if __name__ == "__main__":
     print "parsing dblp.xml"
