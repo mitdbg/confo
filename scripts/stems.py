@@ -31,16 +31,19 @@ def collect_stem_mappings():
         words = words_from_title(title)
 
         for word in words:
-            if word in seenwords: continue
-            seenwords.add(word)
+            #if word in seenwords: continue
+            #seenwords.add(word)
             
             stem = stemmer.stem(word)
             if stem:
                 d = allstems.get(stem, {})
                 d[word] = d.get(word,0) + 1
                 allstems[stem] = d
+
+
         if tid % 10000 == 0: print tid
 
+    print "calculating top words for each stem"
     allstems = dict([(key, max(d.items(), key=lambda p:p[1])[0])
                      for key,d in allstems.items()
                      if sum(d.values()) > 2])
