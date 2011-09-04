@@ -14,6 +14,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.views.decorators.cache import cache_page
+from django.db import connection, transaction
 
 
 from django import forms
@@ -75,7 +76,6 @@ def conference(request, name):
 
 
     
-    from django.db import connection, transaction
     cursor = connection.cursor()
 
     cyears = ConfYear.objects.filter(conf__name = name)
@@ -138,7 +138,6 @@ def conference(request, name):
 
 
 def conferences_json(request):
-    import json    
     term = request.REQUEST.get('term',None)
     if term:
         confs = Conference.objects.filter(name__icontains=term).order_by('-counts__count')[:20]
@@ -203,7 +202,7 @@ def author(request, name=None):
 
 
     
-    from django.db import connection, transaction
+
     cursor = connection.cursor()
 
 
@@ -323,6 +322,7 @@ def firstname_hist(request, fname):
     from authors where split_part(name, ' ', 1) ilike %s 
     group by intpubcount order by intpubcount;"""
 
+    cursor = connection.cursor()
     cursor.execute(q, ['%%%s%%' % fname])
     d = dict(cursor.fetchall())
 
