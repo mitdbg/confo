@@ -1,5 +1,5 @@
 # import python libraries
-import sys,os,math
+import sys,os,math,json
 
 # import django modules
 from django.http import HttpResponseRedirect, HttpResponse
@@ -315,4 +315,19 @@ def author(request, name=None):
                                'pclabels' : labels},
                               context_instance=RequestContext(request))
 
+    
+
+
+def firstname_hist(request, fname):
+    q = """select ((pubcount/5.0)::int)*5 as intpubcount, count(*) as nauthors 
+    from authors where split_part(name, ' ', 1) ilike %s 
+    group by intpubcount order by intpubcount;"""
+
+    cursor.execute(q, ['%%%s%%' % fname])
+    d = dict(cursor.fetchall())
+
+    pubcounts = [(x, d.get(x, 0)) for x in range(0, 465, 5)]
+    return HttpResponse(json.dumps(pubcounts), mimetype='application/json')
+    
+    
     

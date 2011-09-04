@@ -12,5 +12,7 @@ urlpatterns = patterns('home.views',
                        (r'^conferences/json/$', 'conferences_json'),
                        (r'^authors/json/$', 'authors_json'),
                        (r'^test/$', 'test'),
+
+                       (r'^stats/fname/hist/(\w+)/$', 'firstname_hist'),
                        )
 
