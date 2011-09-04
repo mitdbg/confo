@@ -26,6 +26,9 @@ def manage_indices(load_f):
 
 
         for tablename, indexname,_ in createstmts:
+            q1 = "drop index %s cascade;" % indexname
+            q2 = "alter table %s drop contraint %s cascade;" % (tablename, indexname)
+            
             try:
                 print q1
                 cur.execute(q1)
@@ -40,10 +43,13 @@ def manage_indices(load_f):
                     transaction.commit()
                 except:
                     transaction.rollback()
-                    
+
+        print "dropped %d indices." % ndropped                    
+        if ndropped != len(createstmts):
+            print "didn't drop all indexes.  exiting"
+            return
 
 
-        print "dropped %d indices." % ndropped
         
         try:
             load_f()
