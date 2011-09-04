@@ -27,7 +27,28 @@ def test(request):
 
 @cache_page(60 * 1000)
 def index(request):
-    return render_to_response("home/index.html", {}, context_instance=RequestContext(request))
+
+    cursor = connection.cursor()
+    q = """select fname from fname_overall_stats 
+    where char_length(fname) > 2 and count > 0 
+    order by count desc limit 10;"""
+
+    fnamecounts = {}
+    cursor.execute(q)
+    for fname in cursor:
+        q = """select ((pubcount/5.0)::int)*5 as intpubcount, count(*) as nauthors 
+        from authors where split_part(name, ' ', 1) ilike %s 
+        group by intpubcount order by intpubcount;"""
+
+        cursor.execute(q, ['%%%s%%' % fname])
+        d = dict(cursor.fetchall())
+
+        pubcounts = [(x, d.get(x, 0)) for x in range(0, 465, 5)]
+        fnamecounts[fname] = pubcounts
+
+    return render_to_response("home/index.html",
+                              {'fnamecounts' : fnamecounts},
+                              context_instance=RequestContext(request))
 
 @cache_page(60 * 1000)
 def conference_all(request, cs=None):
@@ -316,7 +337,7 @@ def author(request, name=None):
 
     
 
-
+@cache_page(60 * 100)
 def firstname_hist(request, fname):
     q = """select ((pubcount/5.0)::int)*5 as intpubcount, count(*) as nauthors 
     from authors where split_part(name, ' ', 1) ilike %s 

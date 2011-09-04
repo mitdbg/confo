@@ -2,5 +2,19 @@
 
 {% block content %}
 <h1>Welcome</h1>
+
+
+<h2>How do the most popular first names compare?</h2>
+
+{% for fname, counts in fnamecounts.times %}
+
+{{fname}}  
+
+<span class='spark'>
+	{% for v in counts %}{{v}}{% if not forloop.last %},{% endif %}{% endfor %}
+</span>
+
+{% endfor %}
+
 {% endblock %}
 
