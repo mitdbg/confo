@@ -23,18 +23,24 @@ def manage_indices(load_f):
         ndropped = 0
         for _,tablename,indexname,_,createsql in cur:
             createstmts.append((tablename, indexname, createsql))
-            ndropped += 1
+
 
         for tablename, indexname,_ in createstmts:
             try:
-                cur.execute("drop index if exists %s" % indexname)
+                print q1
+                cur.execute(q1)
+                ndropped += 1
+                transaction.commit()
             except:
                 transaction.rollback()
-            try:
-                cur.execute("alter table %s drop constraint if exists %s cascade" % (tablename, indexname))
-            except:
-                transaction.rollback()
-            transaction.commit()
+                try:
+                    print q2                
+                    cur.execute(q2)
+                    ndropped += 1
+                    transaction.commit()
+                except:
+                    transaction.rollback()
+                    
 
 
         print "dropped %d indices." % ndropped
