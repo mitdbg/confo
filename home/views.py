@@ -193,13 +193,12 @@ def author(request, name=None):
     try:
         author = Author.objects.get(name=name)
     except:
-        print "blah"
         if not name: name = request.REQUEST.get('name', None)
         if not name:
             return author_all(request)
         auths = Author.objects.filter(name__icontains = name)
         if len(auths) > 1:
-            return author_all(request, cs)
+            return author_all(request, auths)
         return author_all(request)
 
 
