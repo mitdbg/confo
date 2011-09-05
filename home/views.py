@@ -174,7 +174,7 @@ def author_all(request, auths=None):
     if auths == None:
         auths = Author.objects.all()
     auths = auths.filter(pubcount__gt=0).order_by('-pubcount')
-
+    nauth = auths.count()
     paginator = Paginator(auths, 25) 
 
     # Make sure page request is an int. If not, deliver first page.
@@ -189,7 +189,9 @@ def author_all(request, auths=None):
         auths = paginator.page(paginator.num_pages)
 
     return render_to_response("home/author_all.html",
-                              {'auths' : auths},
+                              {'auths' : auths,
+                               'nauth' : nauth
+                               },
                               context_instance=RequestContext(request))
     
 @cache_page(60 * 100)
@@ -207,11 +209,9 @@ def author(request, name=None):
         return author_all(request)
 
 
-    
-
     cursor = connection.cursor()
 
-
+    # calculate # publications per year for each conference
     query = """select c.name, y.year, count(*) as c
     from conferences as c, years as y, papers as p, authors as a, papers_authors as pa
     where a.name ilike %s and pa.paper_id = p.id and pa.author_id = a.id and
@@ -242,7 +242,7 @@ def author(request, name=None):
         maxcount = max(maxcount, max(counts))
     overallcounts = [overallcounts.get(year,0) for year in years]
 
-    ret.sort(key=lambda (cname,counts): max(counts), reverse=True)
+    ret.sort(key=lambda (cname,counts): sum(counts), reverse=True)
 
 
 

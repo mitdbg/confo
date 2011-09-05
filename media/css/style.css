@@ -1,7 +1,9 @@
 @import url(http://fonts.googleapis.com/css?family=Open+Sans:300);
 body { font-family: open sans;}
+.header { clear: both; font-size: 20pt;}
 
-div.sidebar{ width: 200px; float:left;}
+
+div.sidebar{ width: 200px; float:left; font-size: smaller;}
 div.content {width: 700; float:left;}
 
 
@@ -14,15 +16,13 @@ a {text-decoration:none;}
 a, .link {border-bottom: 1px dotted gray; cursor: pointer;}
 a:hover, .link:hover {border-bottom: 1px solid black;}
 
-/* author stuff */
-.yeartab {list-style-type: none; margin: 0px;}
-.yeartab:hover {cursor:pointer; border-bottom: 1px dotted gray;}
-#yearbar {padding:0px}
-#yearwordcloud {margin-left: 20px}
-.wordcloud {}
-.selected {border-bottom: 1px solid blue}
+.content {padding-left: 30px;}
+.content h1 {margin-left: -30px;}
+.content h2 {margin-left: -30px; font-size: 15pt; color: #555;}
+
 
 .spark {}
+
 table {float:left; margin-right: 20px; }
 p {font-size: 12pt; width: 500px; margin: 15px; }
 p.wide {width: 700px;}
