@@ -1,0 +1,57 @@
+{% extends 'home/base.html' %}
+
+{% block head %}
+<script>
+
+google.load("visualization", "1", {packages:["corechart"]});
+google.setOnLoadCallback(drawChart);
+function drawChart() {
+  var data = new google.visualization.DataTable();
+  	{% for label in labels %}
+		{% if forloop.first %}
+		data.addColumn('string', '{{label}}');		
+		{% else %}
+		data.addColumn('number', '{{label}}');
+		{% endif %}
+	{% endfor %}
+	
+	{% autoescape off %}
+  	{% for row in table %}
+		data.addRow({{row}})
+	{% endfor %}	
+	{% endautoescape %}
+ 	var chart = new google.visualization.LineChart(document.getElementById('viz'));
+    chart.draw(data, {width: 700, height: 500, title: '', interpolateNulls: true,
+		lineWidth: 1, chartArea: {top: 20, width: "70%", height: "80%"},
+		hAxis : {slantedText: false, title : '# Publications', maxAlternation: 1},
+		vAxis : {logScale: true, title : '# People with more publications (log)', minValue:1}});
+}
+
+</script>
+{% endblock %}
+
+
+{% block content %}
+
+<h1>What should I name my kid? (Hint: David)</h1>
+
+<p>Everyone wants their child to be successful in life.  What better metric
+	to evaluate this than by the number of publications?  The most successful 
+	people are those that publish lots and lots of papers!
+</p>
+
+<h2>What, you want evidence?</h2>
+
+<p>Just off the top of my head, there are numerous <a href="/author/david/">Davids</a>.
+	How about <a href="/author/David%20R.%20Karger"><b>David</b> R. Karger</a>?  
+	or <a href="/author/David%20A.%20Patterson"><b>David</b> Patterson</a>?  
+	or <a href="/author/David%20J.%20DeWitt"><b>David</b> Dewitt</a>?  
+</p>
+
+<p>The following is a CDF comparing the top 5 most published first names.  The X axis
+	shows the number of publications -- say 50. The Y axis shows
+	the number of people with a particular first name (e.g., David) that published at least that many publications.
+</p>
+<div id="viz"></div>
+{% endblock %}
+

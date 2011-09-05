@@ -25,30 +25,14 @@ from django.db.models import Count, Min, Max
 def test(request):
     return render_to_response("home/test.html", {}, context_instance=RequestContext(request))
 
+
 @cache_page(60 * 1000)
 def index(request):
-
-    cursor = connection.cursor()
-    q = """select fname from fname_overall_stats 
-    where char_length(fname) > 2 and count > 0 
-    order by count desc limit 10;"""
-
-    fnamecounts = {}
-    cursor.execute(q)
-    for fname in cursor:
-        q = """select ((pubcount/5.0)::int)*5 as intpubcount, count(*) as nauthors 
-        from authors where split_part(name, ' ', 1) ilike %s 
-        group by intpubcount order by intpubcount;"""
-
-        cursor.execute(q, ['%%%s%%' % fname])
-        d = dict(cursor.fetchall())
-
-        pubcounts = [(x, d.get(x, 0)) for x in range(0, 465, 5)]
-        fnamecounts[fname] = pubcounts
-
     return render_to_response("home/index.html",
-                              {'fnamecounts' : fnamecounts},
+                              {},
                               context_instance=RequestContext(request))
+
+
 
 @cache_page(60 * 1000)
 def conference_all(request, cs=None):
@@ -352,3 +336,49 @@ def firstname_hist(request, fname):
     
     
     
+@cache_page(60 * 1000)
+def fname(request):
+
+    cursor = connection.cursor()
+
+    fnamecounts = {}
+    bucksize = 5
+    q = """select afn.fname,  ((afn.pubcount/%d.0)::int-1)*%d as intpubcount, count(*) as nauthors 
+    from authors_by_fname as afn,
+      (select fname as topfname
+       from fname_overall_stats
+       where char_length(fname) > 2
+       order by count * avg desc limit 10) as tops
+    where tops.topfname = afn.fname
+    group by afn.fname, intpubcount
+    order by afn.fname, intpubcount;""" % (bucksize,bucksize)
+
+    cursor.execute(q)
+    res = {}
+    for fname, pubcount, nauthors in cursor:
+        d = res.get(fname, {})
+        d[pubcount] = nauthors
+        res[fname] = d
+        
+    for fname, d in res.items():
+        pubcounts = [d.get(x, 0) for x in range(0, 200, bucksize)]
+        pubcounts = [sum(pubcounts[i:]) for i in xrange(len(pubcounts))]
+        fnamecounts[fname] = pubcounts
+        print fname, pubcounts
+
+    labels = ['Count']
+    labels.extend(fnamecounts.keys())
+    table = []
+    for idx,x in enumerate(range(0, 200, bucksize)):
+        row = ["'%d'" % (x)]
+        for counts in fnamecounts.values():
+            row.append(str(counts[idx]))
+        table.append('[%s]' % ','.join(row))
+    
+
+    return render_to_response("home/firstname.html",
+                              {'fnamecounts' : fnamecounts,
+                               'labels' : labels,
+                               'table' : table
+                               },
+                              context_instance=RequestContext(request))

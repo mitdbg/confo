@@ -1,20 +1,12 @@
 {% extends 'home/base.html' %}
 
+{% block head %}
+{% endblock %}
+
+
 {% block content %}
+
 <h1>Welcome</h1>
 
-
-<h2>How do the most popular first names compare?</h2>
-<table>
-{% for fname, counts in fnamecounts.times %}
-<tr>
-<td>{{fname}}  </td>
-
-<td><span class='spark'>
-	{% for v in counts %}{{v}}{% if not forloop.last %},{% endif %}{% endfor %}
-</span></td>
-</tr>
-{% endfor %}
-</table>
 {% endblock %}
 

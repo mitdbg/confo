@@ -15,38 +15,34 @@ from dblogging import load_logger
 
 
 
-
+@transaction.commit_manually
 def top_conferences():
-    cs = Conference.objects.annotate(c=Count('confyear__paper'),
-                                minyear=Min('confyear__year'),
-                                maxyear=Max('confyear__year')).order_by('-c')
-
     ret = ConfYear.objects.aggregate(Min('year'), Max('year'))
     years = range(ret['year__min'],ret['year__max'] + 1)
-    
-    for conf in cs:
-        try:
-            conf.counts
-        except:
-            cys = ConfYear.objects.filter(conf=conf).annotate(c=Count('paper'))
-            d = dict([(cy.year, cy.c) for cy in cys])
-            counts = [d.get(y, 0) for y in years]
-            yearcounts = ','.join(map(str, counts))
-            cc = ConferenceCounts(conf=conf, count=conf.c,
-                                  minyear=conf.minyear, maxyear=conf.maxyear,
-                                  yearcounts=yearcounts)
-            cc.save()
 
-@transaction.commit_manually
-def author_counts():
-    if Author.objects.filter(pubcount__gt=10).count() > 0: return
-    auths = Author.objects.annotate(c=Count('papers')).filter(c__gt=10).order_by('-c')
-    for auth in auths:
-        print '%d,%d' % (auth.pk,auth.c)
-        auth.pubcount = auth.c
-        auth.save()
-    transaction.commit()
+    cur = connection.cursor()
+    q = """select y.cid, y.year, count(*)
+    from years as y, papers as p
+    where p.cid = y.id group by y.cid, y.year  order by y.cid, y.year;"""
+    cur.execute(q)
+    data = {}
+    for cid, year, n in cur:
+        counts = data.get(cid, {})
+        counts[year] = n
+        data[cid] = counts
+    try:
+        for conf in Conference.objects.all():
+
+            if not conf.counts.yearcounts == '':
+                d = data[conf.pk]
+                counts = [d.get(year, 0) for y in years]
+                conf.counts.yearcounts = ','.join(map(str,counts))
+                conf.counts.save()
+        transaction.commit()
+    except:
+        transaction.rollback()
+
     
 if __name__ == '__main__':
-    author_counts()
+    os.system('psql -f ./setup.sql confo confo')
     top_conferences()

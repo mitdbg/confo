@@ -14,5 +14,6 @@ urlpatterns = patterns('home.views',
                        (r'^test/$', 'test'),
 
                        (r'^stats/fname/hist/(\w+)/$', 'firstname_hist'),
+                       (r'^stats/fname/$', 'fname'),                       
                        )
 
