@@ -1,6 +1,6 @@
 -- calculate conference stats
-begin;
 drop table if exists conf_counts;
+begin;
 create table conf_counts as
 select c.id as id, c.id as cid, count(*) as count, min(y.year) as minyear, max(y.year) as maxyear, ''::text as yearcounts
 from conferences as c, years as y, papers as p 
@@ -14,8 +14,8 @@ commit;
 
 -- update author publication counts
 
-begin;
 drop table if exists authors_tmp;
+begin;
 create table authors_tmp as 
   select a.id as id, a.name as name, count(*) as pubcount
   from authors as a, papers_authors as pa 
@@ -43,8 +43,10 @@ analyze authors;
 -- where pa.paper_id = p.id and a.id = pa.author_id 
 -- group by firstname, p.cid;
 
-begin;
 drop table if exists fname_overall_stats;
+drop table if exists authors_by_fname;
+
+begin;
 create table fname_overall_stats as 
 select split_part(name, ' ', 1) as fname, stddev(pubcount), avg(pubcount), count(*) 
 from authors group by fname order by avg desc;
@@ -55,7 +57,6 @@ where char_length(fname) > 2
 order by count desc limit 10;
 
 -- create authors, but storing first names instead of the full name
-drop table if exists authors_by_fname;
 create table authors_by_fname as 
   select id, split_part(name, ' ', 1) as fname, pubcount 
   from authors;
