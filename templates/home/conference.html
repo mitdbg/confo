@@ -1,15 +1,17 @@
 {% extends 'home/base.html' %}
 
+{% block header %}
+&#149; {{conf.name}}
+{% endblock %}
 
 {% block content %}
 
-<h1>{{conf.name}}</h1>
 <h2>Overall # publications from {{conf.counts.minyear}} - {{conf.counts.maxyear}}</h2>
 <div class='spark'>{{conf.counts.yearcounts}}</div>
 <td><span class='spark'>{% for v in vals %}{{v}}{%if not forloop.last %},{%endif%}{%endfor%}</span></td>
 
 
-<h1>Trends for top {{wordtrends|length}} keywords</h1>
+<h2>Trends for top {{wordtrends|length}} keywords</h2>
 
 <div style="margin: 10px">
 	<table>
@@ -19,7 +21,7 @@
 		<td><span class='spark'>{% for v in vals %}{{v}}{%if not forloop.last %},{%endif%}{%endfor%}</span></td>
 	</tr>
 	
-	{% if forloop.counter|divisibleby:10 %}
+	{% if forloop.counter|divisibleby:15 %}
 	</table>
 	<table>
 	{%endif%}
@@ -30,21 +32,29 @@
 </div>
 
 
-<h1>Top topics by year</h1>
+<h2>Top topics by year</h2>
 
 
-<div style="margin: 10px">
+
+
+<div style="margin:10px; width: 90%; min-width: 600px; overflow-x: auto">
+	<table>
+		<tr>
 	{% for year, words in topks %}
+	<td>
 	<table class='topk'>
 		<tr><td class='year' colspan=2>{{year}}</td></tr>
 		{% for word, count in words %}
 			<tr><td class='count' style="font-size:10pt">{{count}}</td><td >{{word}}</td></tr>
 		{% endfor %}
 	</table>
+	</td>
 	{% endfor %}
-
+	</tr>
+	</table>
+	<div style="clear:both">
 </div>
-
+</div>
 {% endblock %}
 
 

@@ -3,6 +3,10 @@
 {% block head %}
 {% endblock %}
 
+{% block header %}
+&#149; {{author.name}}
+{% endblock %}
+
 
 {% block js %}
 
@@ -40,9 +44,6 @@
 {% endblock %}
 
 {% block content %}
-
-<h1 >What's hot with {{author.name}}?</h1>
-
 
 
 <h2>{{author.pubcount}} Publications overall</h2>

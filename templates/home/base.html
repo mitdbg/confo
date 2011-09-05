@@ -41,9 +41,11 @@
 <body>
 	
 	<div class="header">
-		Conference Viz
+		<a href="/">Conference Viz</a>  
+		{% block header %}{% endblock %} <div style="float: right; clear: right;">What's hot?</div>
+		
 	</div>
-	
+	<div class="content">	
 	<div class="sidebar">
 		
 		<h2><a href="/author/">Authors</a></h2>
@@ -62,7 +64,7 @@
 		</ul>
 		{% block sidebar %}{% endblock %}
 	</div>
-	<div class="content">
+
 		{% block content %} something	{% endblock %}		
 	</div>
 	<div style="clear:both"/>

@@ -109,7 +109,7 @@ def conference(request, name):
             topks.append((year, data))
         overall.append(sum([p[1] for p in data]))
 
-    words = sorted(words.items(), key=lambda p:p[1], reverse=True)[:20]
+    words = sorted(words.items(), key=lambda p:p[1], reverse=True)[:30]
 
     wordtrends = []
     maxcount = 0

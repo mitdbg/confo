@@ -1,11 +1,13 @@
 @import url(http://fonts.googleapis.com/css?family=Open+Sans:300);
-body { font-family: open sans;}
-.header { clear: both; font-size: 20pt;}
+body { font-family: open sans; }
+.header { clear: both; font-size: 20pt; border-bottom: 1px solid gray;}
 
+div.content {min-width: 600px; padding-left: 230px; position: relative;}
+.content h1 {margin-left: -30px;}
+.content h2 {margin-left: -30px; font-size: 15pt; color: #555;}
 
-div.sidebar{ width: 200px; float:left; font-size: smaller;}
-div.content {width: 700; float:left;}
-
+div.sidebar{ width: 200px; left:0px; position: absolute; font-size: smaller;}
+.sidebar h1, .sidebar h2 {margin-left: 0px;}
 
 div.container {}
 .word {font-family: Open Sans; font-size: 12pt; max-width: 400px; text-align: right;}
@@ -16,9 +18,6 @@ a {text-decoration:none;}
 a, .link {border-bottom: 1px dotted gray; cursor: pointer;}
 a:hover, .link:hover {border-bottom: 1px solid black;}
 
-.content {padding-left: 30px;}
-.content h1 {margin-left: -30px;}
-.content h2 {margin-left: -30px; font-size: 15pt; color: #555;}
 
 
 .spark {}

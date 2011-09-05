@@ -8,9 +8,13 @@ th {text-align: left}
 {% block sidebar %}
 {% endblock %}
 
+{% block header %}
+&#149; Conference Search
+{% endblock %}
+
 {% block content %}
 
-<h1>{{nconfs}} Conferences between {{minyear}} and {{maxyear}}</h1>
+<h2>{{nconfs}} Conferences between {{minyear}} and {{maxyear}}</h2>
 
 <div>
 <table>
