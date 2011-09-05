@@ -39,6 +39,7 @@ def conference_all(request, cs=None):
     if cs == None:
         cs = Conference.objects.all()
     cs = cs.order_by('-counts__count')
+    nconfs = cs.count()
     paginator = Paginator(cs, 25) 
 
     # Make sure page request is an int. If not, deliver first page.
@@ -55,11 +56,11 @@ def conference_all(request, cs=None):
     if len(cs.object_list):
         maxcount = max([max(map(int,conf.counts.yearcounts.split(','))) for conf in cs.object_list])
         ret = ConfYear.objects.filter(conf__in=cs.object_list).aggregate(Min('year'), Max('year'))
-        nconfs, minyear, maxyear = cs.object_list.count(), ret['year__min'],ret['year__max']
+        minyear, maxyear = ret['year__min'],ret['year__max']
     else:
         maxcount = 0
         ret = []
-        nconfs, minyear, maxyear = 0,0,0
+        minyear, maxyear = 0,0
 
     return render_to_response("home/conference_all.html",
                               {'confs' : cs,

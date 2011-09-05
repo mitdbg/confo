@@ -10,4 +10,5 @@ python words.py
 python loadwords.py
 
 # calculate other statistics
+psql -f ./setup.sql confo confo
 python precompute.py

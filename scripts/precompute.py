@@ -15,7 +15,7 @@ from dblogging import load_logger
 
 
 
-@transaction.commit_manually
+@transaction.commit_on_success
 def top_conferences():
     ret = ConfYear.objects.aggregate(Min('year'), Max('year'))
     years = range(ret['year__min'],ret['year__max'] + 1)
@@ -25,24 +25,19 @@ def top_conferences():
     from years as y, papers as p
     where p.cid = y.id group by y.cid, y.year  order by y.cid, y.year;"""
     cur.execute(q)
+
     data = {}
     for cid, year, n in cur:
-        counts = data.get(cid, {})
-        counts[year] = n
-        data[cid] = counts
-    try:
-        for conf in Conference.objects.all():
+        if cid not in data:
+            data[cid] = {}
+        data[cid][year] = n
 
-            if not conf.counts.yearcounts == '':
-                d = data[conf.pk]
-                counts = [d.get(year, 0) for y in years]
-                conf.counts.yearcounts = ','.join(map(str,counts))
-                conf.counts.save()
-        transaction.commit()
-    except:
-        transaction.rollback()
-
+    for conf in Conference.objects.all():
+        d = data[conf.pk]
+        counts = [d.get(year, 0) for year in years]
+        conf.counts.yearcounts = ','.join(map(str,counts))
+        conf.counts.save()
     
 if __name__ == '__main__':
-    os.system('psql -f ./setup.sql confo confo')
+    
     top_conferences()
