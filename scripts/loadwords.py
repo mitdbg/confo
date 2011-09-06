@@ -27,7 +27,7 @@ def manage_indices(load_f):
 
         for tablename, indexname,_ in createstmts:
             q1 = "drop index %s cascade;" % indexname
-            q2 = "alter table %s drop contraint %s cascade;" % (tablename, indexname)
+            q2 = "alter table %s drop constraint %s cascade;" % (tablename, indexname)
             
             try:
                 print q1
