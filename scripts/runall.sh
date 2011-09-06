@@ -1,14 +1,14 @@
 #!/bin/bash
 
 
-python parser.py ../data/dblp.xml 2>err
-python loadparsed.py 
+python2.7 parser.py ../data/dblp.xml 2>err
+python2.7 loadparsed.py 
 
 # calculate word frequencies
-python stems.py
-python words.py
-python loadwords.py
+python2.7 stems.py
+python2.7 words.py
+python2.7 loadwords.py
 
 # calculate other statistics
 psql -f ./setup.sql confo confo
-python precompute.py
+python2.7 precompute.py
