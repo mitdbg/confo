@@ -19,10 +19,13 @@ class FormatError(Exception):
         self.message = message
 
 def process_paper(paperinfo):
-    year = int(paperinfo["year"][0])
-    title = paperinfo["title"][0]
-    confname = paperinfo["booktitle"][0]
-    authors = paperinfo.get("author", [])
+    try:
+        year = int(paperinfo["year"][0])
+        title = paperinfo["title"][0]
+        confname = paperinfo["booktitle"][0]
+        authors = paperinfo.get("author", [])
+    except KeyError, e:
+        raise FormatError("unable to get key '" + e.message + "'")
 
     if year < 1910 or year > 2020:
         raise FormatError("bad paper year")
