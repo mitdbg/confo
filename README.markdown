@@ -56,3 +56,4 @@ Future Features List (TODOs)
 * In the little histograms, display maximum value is -- or show height on mouse over
 * "Hide" a word.  Popular words (e.g., "data", "query") make it hard to see the other terms in the little plots.
 * Compare two conferences or people (I'm not sure how that interface would even work)
+* Slow query log like https://github.com/colinhowe/djangosqlsampler
