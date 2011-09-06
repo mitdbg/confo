@@ -52,7 +52,6 @@ Future Features List (TODOs)
 * Simple filtering -- e.g., see a subset of years, or a subset of conferences for a given author.
 * Click on a keyword and see all the papers with that word in it for the given year/word
 * "What's hot with XXX" -- sounds kinda weird
-* Add missing journals (e.g., TODS, VLDB, PVLDB are all missing.)
 * In the little histograms, display maximum value is -- or show height on mouse over
 * "Hide" a word.  Popular words (e.g., "data", "query") make it hard to see the other terms in the little plots.
 * Compare two conferences or people (I'm not sure how that interface would even work)
