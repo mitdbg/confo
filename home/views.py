@@ -74,18 +74,19 @@ def conference_all(request, cs=None):
 def conference(request, name):
     # check if name is unique?
     try:
-        Conference.objects.get(name=name)
+        conf = Conference.objects.get(name=name)
     except:
         cs = Conference.objects.filter(name__icontains = name)
         if len(cs) != 1:
             return conference_all(request, cs)
+        conf = cs[0]
 
 
     
     cursor = connection.cursor()
 
-    cyears = ConfYear.objects.filter(conf__name = name)
-    years = sorted(set([cyear.year for cyear in cyears]))
+    cyears = ConfYear.objects.filter(conf = conf)
+    years = [cyear.year for cyear in cyears]
     years = range(min(years), max(years) + 1)
 
     topks = []
@@ -363,7 +364,9 @@ def fname(request):
         
     for fname, d in res.items():
         pubcounts = [d.get(x, 0) for x in range(0, 200, bucksize)]
-        pubcounts = [sum(pubcounts[i:]) for i in xrange(len(pubcounts))]
+        total = sum(pubcounts)
+        total = 1
+        pubcounts = [sum(pubcounts[i:])/float(total) for i in xrange(len(pubcounts))]
         fnamecounts[fname] = pubcounts
         print fname, pubcounts
 

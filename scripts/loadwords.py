@@ -34,14 +34,16 @@ def manage_indices(load_f):
                 cur.execute(q1)
                 ndropped += 1
                 transaction.commit()
-            except:
+            except Exception, e:
+                print e
                 transaction.rollback()
                 try:
                     print q2                
                     cur.execute(q2)
                     ndropped += 1
                     transaction.commit()
-                except:
+                except Exception, ee:
+                    print ee
                     transaction.rollback()
 
         print "dropped %d indices." % ndropped                    
