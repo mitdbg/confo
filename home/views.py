@@ -81,8 +81,27 @@ def conference(request, name):
             return conference_all(request, cs)
         conf = cs[0]
 
+        
+   # if (request.GET != NULL):   
+   #     for (p in request.GET.items):
+   #         print p
 
-    
+    print request.method
+    hidelist=""
+    hideclause=""
+    print request.GET
+    if (request.method == "GET" and "hidden" in request.GET):
+        hidelist=request.GET["hidden"]
+        print hidelist
+        wordlist = ""
+        first = True
+        for w in hidelist.split(","):
+            if (not first):
+                wordlist += ","
+            first= False
+            wordlist += "'"+w+"'"
+        hideclause = " and word not in (%s) " % (wordlist)
+            
     cursor = connection.cursor()
 
     cyears = ConfYear.objects.filter(conf = conf)
@@ -93,13 +112,8 @@ def conference(request, name):
     overall = []
     words = {}
     for year in years:
-        query = """select word, count(*) as c
-        from conferences as c, years as y, papers as p, words as w
-        where c.id = y.cid and p.cid = y.id and w.pid = p.id and
-        c.name = %s and y.year = %s 
-        group by word
-        order by c desc
-        limit 10"""
+        query = "select word, count(*) as c from conferences as c, years as y, papers"+" as p, words as w where c.id = y.cid and p.cid = y.id and w.pid"+ "= p.id and c.name = %s and y.year = %s"+hideclause+"group by word order by"+" c desc limit 10"
+        #print query
         cursor.execute(query, [name, year])
         data = cursor.fetchall()
 
@@ -134,13 +148,14 @@ def conference(request, name):
 
     
     conf = Conference.objects.get(name=name)
-    
+    print "HIDELIST=",hidelist
     return render_to_response("home/conference.html",
                               {'topks' : topks,
                                'conf' : conf,
                                'overall' : overall,
                                'wordtrends' : wordtrends,
-                               'maxcount' : maxcount},
+                               'maxcount' : maxcount,
+                               'hidden': hidelist},
                               context_instance=RequestContext(request))
 
 
