@@ -6,18 +6,20 @@
 
 {% block content %}
 
-<h2>Overall # publications from {{conf.counts.minyear}} - {{conf.counts.maxyear}}</h2>
-<div class='spark'>{{conf.counts.yearcounts}}</div>
-<td><span class='spark'>{% for v in vals %}{{v}}{%if not forloop.last %},{%endif%}{%endfor%}</span></td>
+{% load replace %}
 
+<h2>Keywords from {{conf.name}} for years {{conf.counts.minyear}} - {{conf.counts.maxyear}}</h2>
 
-<h2>Trends for top {{wordtrends|length}} keywords</h2>
+<!--<div class='spark'>{{conf.counts.yearcounts}}</div>
+<span class='spark'>{% for v in vals %}{{v}}{%if not forloop.last %},{%endif%}{%endfor%}</span></td>-->
+
+<table width=600><tr><td><h2>Overall top {{wordtrends|length}} keywords {%if hidden%} (excluding {{hidden|expandcommas}}) {%endif%}</h2></table>
 
 <div style="margin: 10px">
 	<table>
 	{% for word, vals in wordtrends %}
 	<tr>
-		<td class='word'>{{word}}</td>
+		<td class='word'>{{word}} <a href="?hidden={{hidden}}{% if hidden %},{%endif%}{{word}}">hide</a></td>
 		<td><span class='spark'>{% for v in vals %}{{v}}{%if not forloop.last %},{%endif%}{%endfor%}</span></td>
 	</tr>
 	
@@ -25,8 +27,8 @@
 	</table>
 	<table>
 	{%endif%}
-	
 	{% endfor %}
+          {% if hidden %}<td><a href="?">Unhide all</a>{%endif%}
 	</table>
 	<div style='clear:both'></div>
 </div>
