@@ -54,7 +54,7 @@ def conference_all(request, cs=None):
         cs = paginator.page(paginator.num_pages)
 
     if len(cs.object_list):
-        maxcount = max([max(map(int,conf.counts.yearcounts.split(','))) for conf in cs.object_list if conf.counts.yearcounts.strip() != ''])
+        maxcount = max([max(map(int,conf.counts.yearcounts.split(','))) for conf in cs.object_list])
         ret = ConfYear.objects.filter(conf__in=cs.object_list).aggregate(Min('year'), Max('year'))
         minyear, maxyear = ret['year__min'],ret['year__max']
     else:

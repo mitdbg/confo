@@ -48,19 +48,19 @@ analyze year_word_counts;
 
 
 -- calculate author_year+word counts
-drop table if exists auth_word_counts;
-create table auth_word_counts as
- select a.id as aid, y.id as yid, w.word as word, count(*) as count
- from years as y, papers as p, papers_authors as pa, authors as a, words as w
- where a.id = pa.author_id and p.id = pa.paper_id and y.id = p.cid and w.pid = p.id and
- a.pubcount > 5
- group by a.id, y.id, w.word;
+-- drop table if exists auth_word_counts;
+-- create table auth_word_counts as
+--  select a.id as aid, y.id as yid, w.word as word, count(*) as count
+--  from years as y, papers as p, papers_authors as pa, authors as a, words as w
+--  where a.id = pa.author_id and p.id = pa.paper_id and y.id = p.cid and w.pid = p.id and
+--  a.pubcount > 5
+--  group by a.id, y.id, w.word;
 
-CREATE INDEX awc_aid on auth_word_counts(aid);
-CREATE INDEX awc_yid on auth_word_counts(yid);
-CREATE INDEX awc_word on auth_word_counts USING btree (word);
-vacuum auth_word_counts;
-analyze auth_word_counts;
+-- CREATE INDEX awc_aid on auth_word_counts(aid);
+-- CREATE INDEX awc_yid on auth_word_counts(yid);
+-- CREATE INDEX awc_word on auth_word_counts USING btree (word);
+-- vacuum auth_word_counts;
+-- analyze auth_word_counts;
 
 
 --
