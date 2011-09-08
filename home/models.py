@@ -20,6 +20,14 @@ class ConfYear(models.Model):
     conf = models.ForeignKey(Conference, db_column="cid")
     year = models.IntegerField(db_column="year", db_index=True)
 
+class ConfYearWordCounts(models.Model):
+    class Meta:
+        db_table = "year_word_counts"
+    conf = models.OneToOneField(ConfYear, db_column='yid', related_name='wordcounts',
+                                db_index=True, primary_key=True)
+    word = models.CharField(max_length=128, db_column='word', db_index=True)
+    count = models.IntegerField()
+
 class Author(models.Model):
     class Meta:
         db_table = "authors"

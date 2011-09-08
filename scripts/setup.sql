@@ -31,7 +31,21 @@ commit;
 vacuum authors;
 analyze authors;
 
+-- calculate conference-year+word counts
+drop table if exists year_word_counts;
+create table year_word_counts as 
+ select y.id as yid, w.word as word, count(*) as count 
+ from years as y, papers as p, words as w 
+ where w.pid = p.id and p.cid = y.id 
+ group by y.id, w.word  
+ having count(*) > 5 
+ order by count desc;
 
+CREATE INDEX cywc_yid on year_word_counts(yid);
+CREATE INDEX cywc_word on year_word_counts USING btree (word);
+CREATE INDEX year_word_counts_word_like on year_word_counts USING btree (word varchar_pattern_ops);
+vacuum year_word_counts;
+analyze year_word_counts;
 
 --
 -- first name statistics
