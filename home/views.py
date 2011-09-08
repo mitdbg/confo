@@ -157,7 +157,6 @@ def conference(request, name):
 
 
     
-    conf = Conference.objects.get(name=name)
     print "HIDELIST=",hidelist
     return render_to_response("home/conference.html",
                               {'topks' : topks,
