@@ -107,14 +107,18 @@ def conference(request, name):
     cyears = ConfYear.objects.filter(conf = conf)
     years = [cyear.year for cyear in cyears]
     years = range(min(years), max(years) + 1)
-
+    years.append("all")
     topks = []
     overall = []
     words = {}
     for year in years:
-        query = "select word, count(*) as c from conferences as c, years as y, papers"+" as p, words as w where c.id = y.cid and p.cid = y.id and w.pid"+ "= p.id and c.name = %s and y.year = %s"+hideclause+"group by word order by"+" c desc limit 10"
+        if year == "all":
+            query = "select word, count(*) as c from conferences as c, years as y, papers"+" as p, words as w where c.id = y.cid and p.cid = y.id and w.pid"+ "= p.id and c.name = %s"+hideclause+"group by word order by"+" c desc limit 10"
+            cursor.execute(query, [name])
+        else:
+            query = "select word, count(*) as c from conferences as c, years as y, papers"+" as p, words as w where c.id = y.cid and p.cid = y.id and w.pid"+ "= p.id and c.name = %s and y.year = %s"+hideclause+"group by word order by"+" c desc limit 10"
+            cursor.execute(query, [name, year])
         #print query
-        cursor.execute(query, [name, year])
         data = cursor.fetchall()
 
         for word, c in data:
