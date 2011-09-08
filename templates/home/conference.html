@@ -19,10 +19,12 @@
 	<table>
 	{% for word, vals in wordtrends %}
 	<tr>
-		<td class='word'>{{word}} <a href="?hidden={{hidden}}{% if hidden %},{%endif%}{{word}}">hide</a></td>
-		<td><span class='spark'>{% for v in vals %}{{v}}{%if not forloop.last %},{%endif%}{%endfor%}</span></td>
+		<td class='word'>{{word}} </td>
+		<td><span class='spark'>{% for v in vals %}{{v}}{%if not forloop.last %},{%endif%}{%endfor%}</span></td> 
 	</tr>
-	
+	<tr><td class='word-small' valign=top> <a href="?hidden={{hidden}}{% if hidden %},{%endif%}{{word}}">hide</a> </td> <td></td>
+        </tr>
+
 	{% if forloop.counter|divisibleby:15 %}
 	</table>
 	<table>
