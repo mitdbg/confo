@@ -7,3 +7,10 @@ register = template.Library()
 @stringfilter
 def expandcommas(value):
     return value.replace(',',', ')
+
+
+
+
+@register.filter
+def filterstr(value, badword=None):
+    return filter(lambda w: w != badword, value)
