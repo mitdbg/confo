@@ -13,22 +13,34 @@
 <!--<div class='spark'>{{conf.counts.yearcounts}}</div>
 <span class='spark'>{% for v in vals %}{{v}}{%if not forloop.last %},{%endif%}{%endfor%}</span></td>-->
 
-<table width=600><tr><td><h2>Overall top {{wordtrends|length}} keywords {%if hidden%} (excluding {{hidden|expandcommas}}) {%endif%}</h2></table>
+<div>
+	<h2>Overall top {{wordtrends|length}} keywords</h2> 
+	{%if hidden %} 
+	(excluding 
+		{% for word in hidden %}
+			{{word}} <a href="?hidden={{hidden|filterstr:word|join:","}}">[x] </a>
+			{% if not forloop.last %}, {% endif %} 
+		{%endfor%}.            
+		{% if hidden %}<a href="?">Unhide all</a>{%endif%}
+	)
+	{% endif %}
+	
+</div>
 
 <div style="margin: 10px">
 	<table>
 	{% for word, vals in wordtrends %}
 	<tr>
-		<td class='word'>{{word}} <a href="?hidden={{hidden}}{% if hidden %},{%endif%}{{word}}">hide</a></td>
+		<td class='word'>{{word}} <a href="?hidden={{hidden|join:","}}{% if hidden %},{%endif%}{{word}}">hide</a></td>
 		<td><span class='spark'>{% for v in vals %}{{v}}{%if not forloop.last %},{%endif%}{%endfor%}</span></td>
 	</tr>
 	
-	{% if forloop.counter|divisibleby:15 %}
+	{% if forloop.counter|divisibleby:10 %}
 	</table>
 	<table>
 	{%endif%}
 	{% endfor %}
-          {% if hidden %}<td><a href="?">Unhide all</a>{%endif%}
+
 	</table>
 	<div style='clear:both'></div>
 </div>

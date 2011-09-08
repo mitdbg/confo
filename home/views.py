@@ -91,30 +91,34 @@ def conference(request, name):
     hideclause=""
     print request.GET
     if (request.method == "GET" and "hidden" in request.GET):
-        hidelist=request.GET["hidden"]
-        print hidelist
-        wordlist = ""
-        first = True
-        for w in hidelist.split(","):
-            if (not first):
-                wordlist += ","
-            first= False
-            wordlist += "'"+w+"'"
-        hideclause = " and word not in (%s) " % (wordlist)
+        hidelist= [str(w.strip()) for w in request.GET["hidden"].split(',')]
+        wordlist = ["'%s'" % w for w in hidelist]
+        hideclause = " and word not in (%s) " % (','.join(wordlist))
+        print hideclause
             
     cursor = connection.cursor()
 
     cyears = ConfYear.objects.filter(conf = conf)
     years = [cyear.year for cyear in cyears]
+    minyear, maxyear = min(years), max(years)
     years = range(min(years), max(years) + 1)
+
+
 
     topks = []
     overall = []
     words = {}
     for year in years:
-        query = "select word, count(*) as c from conferences as c, years as y, papers"+" as p, words as w where c.id = y.cid and p.cid = y.id and w.pid"+ "= p.id and c.name = %s and y.year = %s"+hideclause+"group by word order by"+" c desc limit 10"
-        #print query
-        cursor.execute(query, [name, year])
+        query = ["select ywc.word, count as c  from years as y, year_word_counts as ywc",
+                 "where ywc.yid = y.id and y.year >= %s  and y.cid = %s",
+                 hideclause,
+                 "order by y.year asc limit 10"]
+        query = " ".join(query)
+        cursor.execute(query, [year, conf.pk])
+        
+        # query = "select word, count(*) as c from conferences as c, years as y, papers"+" as p, words as w where c.id = y.cid and p.cid = y.id and w.pid"+ "= p.id and c.name = %s and y.year = %s"+hideclause+"group by word order by"+" c desc limit 10"
+        # #print query
+        # cursor.execute(query, [name, year])
         data = cursor.fetchall()
 
         for word, c in data:
@@ -129,14 +133,11 @@ def conference(request, name):
     wordtrends = []
     maxcount = 0
     for word,_ in words:
-        query = """select year, count(*) as c
-        from conferences as c, years as y, papers as p, words as w
-        where w.pid = p.id and p.cid = y.id and y.cid = c.id and
-        w.word = %s and c.name = %s
-        group by year
-        order by year asc"""
-        
-        cursor.execute(query, [word, name])
+        query = """select y.year, ywc.count
+        from years as y, year_word_counts as ywc
+        where ywc.yid = y.id and word = %s and y.cid = %s
+        """
+        cursor.execute(query, [word, conf.pk])
         d = dict(cursor.fetchall())
         trend = [d.get(year, 0) for year in years]
         wordtrends.append((word, trend))
@@ -222,7 +223,9 @@ def author(request, name=None):
         auths = Author.objects.filter(name__icontains = name)
         if len(auths) > 1:
             return author_all(request, auths)
-        return author_all(request)
+        elif len(auths) == 0:
+            return author_all(request)
+        author = auths[0]
 
 
     cursor = connection.cursor()
@@ -230,13 +233,13 @@ def author(request, name=None):
     # calculate # publications per year for each conference
     query = """select c.name, y.year, count(*) as c
     from conferences as c, years as y, papers as p, authors as a, papers_authors as pa
-    where a.name ilike %s and pa.paper_id = p.id and pa.author_id = a.id and
+    where a.id = %s and pa.paper_id = p.id and pa.author_id = a.id and
     p.cid = y.id and y.cid = c.id
     group by c.name, y.year
     order by c.name, y.year
     """
 
-    cursor.execute(query, ['%%%s%%' % name])
+    cursor.execute(query, [author.pk])
     confdata = {}
     overallcounts = {}
     years = set()
@@ -267,12 +270,12 @@ def author(request, name=None):
     query = """select word, count(*) as c
     from words as w, authors as a, papers as p, papers_authors as ap
     where ap.paper_id = p.id and ap.author_id = a.id and
-    a.name ilike %s and w.pid = p.id
+    a.id = %s and w.pid = p.id
     group by w.word
     order by c desc
     limit 20
     """
-    cursor.execute(query, ['%%%s%%' % name])
+    cursor.execute(query, [author.pk])
     allwords = [(w,c) for w,c in cursor]
     wordyears = {}
     if len(allwords):
@@ -282,11 +285,11 @@ def author(request, name=None):
         query = """select y.year, word, count(*) as c
         from words as w, authors as a, papers as p, papers_authors as ap, years as y
         where ap.paper_id = p.id and ap.author_id = a.id and p.cid = y.id and
-        a.name ilike %s and w.pid = p.id
+        a.id = %s and w.pid = p.id
         group by w.word, y.year
         order by y.year asc, c desc
         """
-        cursor.execute(query, ['%%%s%%' % name])
+        cursor.execute(query, [author.pk])
         uniquewords = {}
         for y, word, c in cursor:
             words = wordyears.get(y, [])
