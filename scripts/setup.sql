@@ -38,7 +38,7 @@ create table year_word_counts as
  from years as y, papers as p, words as w 
  where w.pid = p.id and p.cid = y.id 
  group by y.id, w.word  
- having count(*) > 5 
+ having count(*) > 2 
  order by count desc;
 
 CREATE INDEX cywc_yid on year_word_counts(yid);

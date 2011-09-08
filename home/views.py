@@ -116,7 +116,7 @@ def conference(request, name):
             query = ["select ywc.word, count as c  from years as y, year_word_counts as ywc",
                      "where ywc.yid = y.id and y.cid = %s",
                      hideclause,
-                     "order by y.year asc limit 10"]
+                     "order by c desc limit 10"]
             query = " ".join(query)
             cursor.execute(query, [conf.pk])
         else:
