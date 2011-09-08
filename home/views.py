@@ -90,8 +90,9 @@ def conference(request, name):
     hidelist=""
     hideclause=""
     print request.GET
-    if (request.method == "GET" and "hidden" in request.GET):
-        hidelist= [str(w.strip()) for w in request.GET["hidden"].split(',')]
+    hidelist = request.GET.get('hidden', '')
+    if hidelist.strip():
+        hidelist= [str(w.strip()) for w in hidelist.split(',') if len(w.strip()) > 0]
         wordlist = ["'%s'" % w for w in hidelist]
         hideclause = " and word not in (%s) " % (','.join(wordlist))
         print hideclause
@@ -105,20 +106,28 @@ def conference(request, name):
 
 
 
+
+    years.append("all")
     topks = []
     overall = []
     words = {}
     for year in years:
-        query = ["select ywc.word, count as c  from years as y, year_word_counts as ywc",
-                 "where ywc.yid = y.id and y.year >= %s  and y.cid = %s",
-                 hideclause,
-                 "order by y.year asc limit 10"]
-        query = " ".join(query)
-        cursor.execute(query, [year, conf.pk])
+        if year == 'all':
+            query = ["select ywc.word, count as c  from years as y, year_word_counts as ywc",
+                     "where ywc.yid = y.id and y.cid = %s",
+                     hideclause,
+                     "order by y.year asc limit 10"]
+            query = " ".join(query)
+            cursor.execute(query, [conf.pk])
+        else:
+            query = ["select ywc.word, count as c  from years as y, year_word_counts as ywc",
+                     "where ywc.yid = y.id and y.year = %s  and y.cid = %s",
+                     hideclause,
+                     "order by y.year asc limit 10"]
+            query = " ".join(query)
+            cursor.execute(query, [year, conf.pk])
         
-        # query = "select word, count(*) as c from conferences as c, years as y, papers"+" as p, words as w where c.id = y.cid and p.cid = y.id and w.pid"+ "= p.id and c.name = %s and y.year = %s"+hideclause+"group by word order by"+" c desc limit 10"
-        # #print query
-        # cursor.execute(query, [name, year])
+
         data = cursor.fetchall()
 
         for word, c in data:

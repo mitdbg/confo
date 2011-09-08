@@ -4,6 +4,10 @@
 &#149; {{conf.name}}
 {% endblock %}
 
+{% block css %}
+.word:hover {text-decoration: line-through; border-bottom: none;}
+{% endblock %}
+
 {% block content %}
 
 {% load replace %}
@@ -31,10 +35,9 @@
 	<table>
 	{% for word, vals in wordtrends %}
 	<tr>
-		<td class='word'>{{word}} <a href="?hidden={{hidden|join:","}}{% if hidden %},{%endif%}{{word}}">hide</a></td>
+		<td class='word'><a href="?hidden={{hidden|join:","}}{% if hidden %},{%endif%}{{word}}">{{word}}</a></td>
 		<td><span class='spark'>{% for v in vals %}{{v}}{%if not forloop.last %},{%endif%}{%endfor%}</span></td>
 	</tr>
-	
 	{% if forloop.counter|divisibleby:10 %}
 	</table>
 	<table>
