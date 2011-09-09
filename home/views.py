@@ -113,9 +113,10 @@ def conference(request, name):
     words = {}
     for year in years:
         if year == 'all':
-            query = ["select ywc.word, count as c  from years as y, year_word_counts as ywc",
+            query = ["select ywc.word, sum(count) as c  from years as y, year_word_counts as ywc",
                      "where ywc.yid = y.id and y.cid = %s",
                      hideclause,
+                     "group by ywc.word",
                      "order by c desc limit 10"]
             query = " ".join(query)
             cursor.execute(query, [conf.pk])
