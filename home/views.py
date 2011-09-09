@@ -334,6 +334,9 @@ def author(request, name=None):
         import json
         labels = json.dumps(labels)            
         table = json.dumps(table)
+    else:
+        table = json.dumps([])
+        labels = json.dumps([])
     
                                            
     return render_to_response("home/author.html",

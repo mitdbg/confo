@@ -1,7 +1,6 @@
 import os
 import sys
 import nltk
-import sqlite3
 from nltk.corpus import stopwords
 
 ROOT = os.path.abspath('%s/../..' % os.path.abspath(os.path.dirname(__file__)))
