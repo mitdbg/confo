@@ -22,13 +22,30 @@
 	});
 	
 	function authorform_submit() {
-		$(location).attr('href', '/author/' + $("#auths_input").val() + "/");
+		$(location).attr('href', '/author/' + $("#auths_input").val() + "/" );
 		return false;
 	}
 	function confform_submit() {
-		$(location).attr('href', '/conference/' + $("#confs_input").val() + "/");
+                if ($("#confs_input").val() != "{{conf.name}}") {
+                   $(location).attr('href', '/conference/' + $("#confs_input").val());
+                } else {
+                   $(location).attr('href', '/conference/' + $("#confs_input").val() + "/"  + $("#startyear").val() + "/" + $("#endyear").val());
+                }
 		return false;
 	}
+
+        function validateyear() {
+             start = $("#startyear").val();
+             end = $("#endyear").val();
+             
+       
+             if (start > end || end < start) {
+                 alert("Start year must be equal to or less than end year.");
+                 $("#startyear").val(end);
+                 return false;
+             }
+             return true;
+        }
 	</script>
 	{% block head %}
 	{% endblock %}
@@ -56,7 +73,27 @@
 		<form onsubmit="return authorform_submit()" action='/author/' method='GET'><input name="name" id="auths_input" /></form>
 
 		<h2><a href="/conference/">Conferences</a></h2>
-		<form onsubmit="return confform_submit()" action='/conference/' method='GET'><input name="name" id="confs_input" /></form>
+		<form onsubmit="return confform_submit()" action='/conference/' method='GET'>
+          <input name="name" id="confs_input" value="{{conf.name}}" /> <br>
+         {%if years%}
+          Start year: <select name = "startyear" id = "startyear" onchange="if (validateyear()) return confform_submit()">
+            {%for year in years%}
+            <option value="{{year}}" {%if selectedstartyear == year%}selected="true"{%endif%}>{{year}}</option>
+            {%endfor%}
+          </select> <br>
+          End year: <select name = "endyear" id = "endyear" onchange="if (validateyear()) return confform_submit()">
+            {%for year in years%}
+            <option value="{{year}}" {%if selectedendyear == year%}selected="true"{%endif%}>{{year}}</option>
+            {%endfor%}
+
+          </select>
+          {%else%}
+          <hidden id="startyear" value="-1">
+          <hidden id="endyear" value="-1">
+
+          {%endif%}
+          
+          </form>
 		
 		<ul>
 		<li><a href="/conference/VLDB">VLDB</a>

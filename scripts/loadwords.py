@@ -1,7 +1,6 @@
 import os
 import sys
 import nltk
-import sqlite3
 from nltk.corpus import stopwords
 
 ROOT = os.path.abspath('%s/../..' % os.path.abspath(os.path.dirname(__file__)))
@@ -27,21 +26,23 @@ def manage_indices(load_f):
 
         for tablename, indexname,_ in createstmts:
             q1 = "drop index %s cascade;" % indexname
-            q2 = "alter table %s drop contraint %s cascade;" % (tablename, indexname)
+            q2 = "alter table %s drop constraint %s cascade;" % (tablename, indexname)
             
             try:
                 print q1
                 cur.execute(q1)
                 ndropped += 1
                 transaction.commit()
-            except:
+            except Exception, e:
+                print e
                 transaction.rollback()
                 try:
                     print q2                
                     cur.execute(q2)
                     ndropped += 1
                     transaction.commit()
-                except:
+                except Exception, ee:
+                    print ee
                     transaction.rollback()
 
         print "dropped %d indices." % ndropped                    

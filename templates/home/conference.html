@@ -4,29 +4,46 @@
 &#149; {{conf.name}}
 {% endblock %}
 
+{% block css %}
+.word:hover {text-decoration: line-through; border-bottom: none;}
+{% endblock %}
+
 {% block content %}
 
-<h2>Overall # publications from {{conf.counts.minyear}} - {{conf.counts.maxyear}}</h2>
-<div class='spark'>{{conf.counts.yearcounts}}</div>
-<td><span class='spark'>{% for v in vals %}{{v}}{%if not forloop.last %},{%endif%}{%endfor%}</span></td>
+{% load replace %}
 
+<h2>Keywords from {{conf.name}} for years {{selectedstartyear}} - {{selectedendyear}}</h2>
 
-<h2>Trends for top {{wordtrends|length}} keywords</h2>
+<!--<div class='spark'>{{conf.counts.yearcounts}}</div>
+<span class='spark'>{% for v in vals %}{{v}}{%if not forloop.last %},{%endif%}{%endfor%}</span></td>-->
+
+<div>
+	<h2>Overall top {{wordtrends|length}} keywords</h2> 
+	{%if hidden %} 
+	(excluding 
+		{% for word in hidden %}
+			{{word}} <a href="?hidden={{hidden|filterstr:word|join:","}}">[x] </a>
+			{% if not forloop.last %}, {% endif %} 
+		{%endfor%}.            
+		{% if hidden %}<a href="?">Unhide all</a>{%endif%}
+	)
+	{% endif %}
+	
+</div>
 
 <div style="margin: 10px">
 	<table>
 	{% for word, vals in wordtrends %}
 	<tr>
-		<td class='word'>{{word}}</td>
+		<td class='word'><a href="?hidden={{hidden|join:","}}{% if hidden %},{%endif%}{{word}}">{{word}}</a></td>
 		<td><span class='spark'>{% for v in vals %}{{v}}{%if not forloop.last %},{%endif%}{%endfor%}</span></td>
 	</tr>
-	
-	{% if forloop.counter|divisibleby:15 %}
+	{% if forloop.counter|divisibleby:10 %}
 	</table>
 	<table>
 	{%endif%}
-	
 	{% endfor %}
+
 	</table>
 	<div style='clear:both'></div>
 </div>
@@ -41,7 +58,7 @@
 	<table>
 		<tr>
 	{% for year, words in topks %}
-	<td>
+	<td style="vertical-align: top;">
 	<table class='topk'>
 		<tr><td class='year' colspan=2>{{year}}</td></tr>
 		{% for word, count in words %}

@@ -4,7 +4,9 @@ from django.views.generic.simple import direct_to_template
 urlpatterns = patterns('home.views',
                        (r'^$', 'index'),
                        (r'^conference/$', 'conference_all'),
-                       (r'^conference/(\w.*)/$', 'conference'),
+                       (r'^conference//\w.*/\w.*$', 'conference_all'),
+                       (r'^conference/(\w.*)/(\w.*)/(\w.*)$', 'conference'),
+                       (r'^conference/(\w.*)/$', 'conferencenoyears'),
 
                        (r'^author/$', 'author'),
                        (r'^author/(\w.*)/$', 'author'),

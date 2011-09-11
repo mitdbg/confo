@@ -13,6 +13,7 @@ div.sidebar{ width: 200px; left:0px; position: absolute; font-size: smaller;}
 
 div.container {}
 .word {font-family: Open Sans; font-size: 12pt; max-width: 400px; text-align: right;}
+.word-small {font-family: Open Sans; font-size: 9pt; max-width: 400px; text-align: right;}
 
 .pagination {margin-top: 50px;}
 
