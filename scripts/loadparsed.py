@@ -12,39 +12,58 @@ from django.db import connection, transaction
 from dblogging import load_logger
 
 
+
 @transaction.commit_manually
 def manage_indices(load_f):
     def retf():
         cur = connection.cursor()
-        cur.execute("select * from pg_indexes where schemaname = 'public';")
+        cur.execute("select tablename, indexname, indexdef from pg_indexes where schemaname = 'public';")
         createstmts = []
         ndropped = 0
-        for _,tablename,indexname,_,createsql in cur:
+
+        for tablename,indexname,createsql in cur:
             createstmts.append((tablename, indexname, createsql))
-            ndropped += 1
+
 
         for tablename, indexname,_ in createstmts:
             try:
-                cur.execute("drop index if exists %s" % indexname)
-            except:
+                sql = "drop index if exists %s" % indexname
+                cur.execute(sql)
+                ndropped += 1
+                transaction.commit()
+            except Exception, e:
+                print >> sys.stderr, "error running: %s" % sql
+                print >> sys.stderr, e
                 transaction.rollback()
-            try:
-                cur.execute("alter table %s drop constraint if exists %s cascade" % (tablename, indexname))
-            except:
-                transaction.rollback()
-            transaction.commit()
 
+                try:
+                    sql = "alter table %s drop constraint if exists %s cascade" % (tablename, indexname)
+                    print "running", sql
+                    cur.execute(sql)
+                    ndropped += 1
+                    transaction.commit()
+                except Exception, e:
+                    print >> sys.stderr, "error running: %s" % sql                
+                    print >> sys.stderr, e
+                    transaction.rollback()
 
         print "dropped %d indices." % ndropped
         
 
         load_f()
 
+        ncreated = 0
         for _,_,createstmt in createstmts:
-            cur.execute(createstmt)
-
-        cur.execute("select indexname from pg_indexes where schemaname = 'public';")
-        print "created %d indices." % len(cur.fetchall())        
+            try:
+                print "running:", createstmt
+                cur.execute(createstmt)
+                ncreated += 1
+                transaction.commit()
+            except Exception, e:
+                print >> sys.stderr, "error running: %s" % createstmt
+                print >> sys.stderr, e
+                transaction.rollback()
+        print "created %d indices." % ncreated
             
         transaction.commit()
     return retf
