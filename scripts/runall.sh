@@ -2,7 +2,7 @@
 
 
 python2.7 parser.py ../data/dblp.xml 2>err
-python2.7 loadparsed.py 
+python2.7 loadparsed.py 2>>err
 
 # calculate word frequencies
 python2.7 stems.py

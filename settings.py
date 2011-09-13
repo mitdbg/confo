@@ -15,9 +15,9 @@ MANAGERS = ADMINS
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        #'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
 
-        #'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
         'LOCATION': 'cache',
     }
 }
