@@ -31,6 +31,14 @@ commit;
 vacuum authors;
 analyze authors;
 
+
+-- calculate paper-word counts
+drop table if exists papers_word_counts;
+create table papers_word_counts as 
+select pid, word,  count(*) as c 
+from words 
+group by pid, word having count(*) > 1  order by c desc;
+
 -- calculate conference-year+word counts
 drop table if exists year_word_counts;
 create table year_word_counts as 
