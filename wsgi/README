@@ -1,0 +1,15 @@
+I got most of these instructions from
+
+http://www.jeremybowers.com/blog/post/5/django-nginx-and-uwsgi-production-serving-millions-page-views/
+
+1) Download the latest stable nginx tarball, compile it (with no special
+options).  The relevant files for it will live in /usr/local/nginx/...
+2) Download the latest uWsgi tarball, compile it (using the Makefile for
+your version of python), and copy the compiled binary to /usr/sbin/uwsgi
+3) Follow the instructions for Upstart (on Ubuntu) installs for nginx and a
+confo instance of uwsgi from the two files in the upstart directory.
+Essentially, copy the two .conf files in the upstart/ directory to
+/etc/init, reload upstart's configuration, and start both services.
+4) Copy the nginx.conf from nginx to the nginx configuration directory (see
+nginx.conf in the nginx/ directory), and restart nginx with upstart.
+5) Profit

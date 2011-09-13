@@ -28,6 +28,13 @@ class ConfYearWordCounts(models.Model):
     word = models.CharField(max_length=128, db_column='word', db_index=True)
     count = models.IntegerField()
 
+class SimilarConferences(models.Model):
+    class Meta:
+        db_table = "similar_conferences"
+    fromconf = models.OneToOneField(Conference, related_name='similar_from_conferences', db_index=True)
+    toconf = models.OneToOneField(Conference, related_name='similar_to_conferences', db_index=True)
+    similarity = models.FloatField()             
+
 class Author(models.Model):
     class Meta:
         db_table = "authors"

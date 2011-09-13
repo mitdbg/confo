@@ -26,7 +26,7 @@ def test(request):
     return render_to_response("home/test.html", {}, context_instance=RequestContext(request))
 
 
-@cache_page(60 * 1000)
+#@cache_page(60 * 1000)
 def index(request):
     return render_to_response("home/index.html",
                               {},
@@ -34,7 +34,7 @@ def index(request):
 
 
 
-@cache_page(60 * 1000)
+#@cache_page(60 * 1000)
 def conference_all(request, cs=None):
     if cs == None:
         cs = Conference.objects.all()
@@ -71,8 +71,15 @@ def conference_all(request, cs=None):
                               context_instance=RequestContext(request))
 
 @cache_page(60 * 1000)
-def conference(request, name):
+def conferencenoyears(request, name):
+    return conference(request,name,-1,-1)
+
+def conference(request, name, startyear, endyear):
     # check if name is unique?
+    startyear=int(startyear)
+    endyear=int(endyear)
+    print "startyear=",startyear,"endyear=",endyear
+    
     try:
         conf = Conference.objects.get(name=name)
     except:
@@ -89,6 +96,7 @@ def conference(request, name):
     print request.method
     hidelist=""
     hideclause=""
+
     print request.GET
     hidelist = request.GET.get('hidden', '')
     if hidelist.strip():
@@ -100,10 +108,20 @@ def conference(request, name):
     cursor = connection.cursor()
 
     cyears = ConfYear.objects.filter(conf = conf)
+
     years = [cyear.year for cyear in cyears]
     minyear, maxyear = min(years), max(years)
-    years = range(min(years), max(years) + 1)
+    if (startyear != -1 and startyear >= minyear):
+        curstartyear = startyear
+    else:
+        curstartyear = minyear
 
+    if (endyear != -1 and endyear <= maxyear):
+        curendyear = endyear
+    else:
+        curendyear = maxyear
+
+    years = range(curstartyear, curendyear + 1)
 
 
 
@@ -113,12 +131,13 @@ def conference(request, name):
     words = {}
     for year in years:
         if year == 'all':
-            query = ["select ywc.word, count as c  from years as y, year_word_counts as ywc",
-                     "where ywc.yid = y.id and y.cid = %s",
+            query = ["select ywc.word, sum(count) as c  from years as y, year_word_counts as ywc",
+                     "where ywc.yid = y.id and y.cid = %s and y.year between %s and %s",
                      hideclause,
+                     "group by ywc.word",
                      "order by c desc limit 10"]
             query = " ".join(query)
-            cursor.execute(query, [conf.pk])
+            cursor.execute(query, [conf.pk, curstartyear, curendyear])
         else:
             query = ["select ywc.word, count as c  from years as y, year_word_counts as ywc",
                      "where ywc.yid = y.id and y.year = %s  and y.cid = %s",
@@ -164,7 +183,11 @@ def conference(request, name):
                                'overall' : overall,
                                'wordtrends' : wordtrends,
                                'maxcount' : maxcount,
-                               'hidden': hidelist},
+                               'hidden': hidelist,
+                               'years': range(minyear,maxyear+1),
+                               'selectedstartyear': curstartyear,
+                               'selectedendyear': curendyear
+                               },
                               context_instance=RequestContext(request))
 
 
