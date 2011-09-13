@@ -41,7 +41,7 @@ def bar():
 @transaction.commit_manually
 def foo():
     cur = connection.cursor()
-    cur.execute("select pid, word, c from papers_words_counts order by pid, c desc limit;")
+    cur.execute("select pid, word, c from papers_words_counts order by pid, c desc;")
     curpid = None
     d = {}
     w_to_pid = {}
