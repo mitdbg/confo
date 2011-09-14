@@ -87,7 +87,9 @@ def similar_conferences():
     cur = connection.cursor()
     conf_words, word_confs = confs_words(cur)
     write_similar(conf_words, word_confs)
+    transaction.commit()
     load_similar(cur)
 
 if __name__ == '__main__':
     similar_conferences()
+
