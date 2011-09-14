@@ -1,5 +1,6 @@
 import os
 import sys
+from util import similarity
 
 ROOT = os.path.abspath('%s/../..' % os.path.abspath(os.path.dirname(__file__)))
 sys.path.append(ROOT)
@@ -36,20 +37,6 @@ def confs_words(cur):
         if len(word) == 1:
             words[wid] = word
     return (confs, words)
-
-def l2norm(vec):
-    sum_squares = sum(count*count for wid, count in vec)
-    return sqrt(sum_squares)
-
-def similarity(vec1, vec2):
-    """
-    calculates cosine similarity
-    """
-    dict2 = dict(vec2)
-    prods = (count*dict2[wid] for wid, count in vec1 if wid in dict2)
-    numerator = 1.0 * sum(prods)
-    denominator = 1.0 * l2norm(vec1) * l2norm(vec2)
-    return numerator / denominator
 
 def calc_similarities(cid, vector, candidates, conf_words):
     similar = []

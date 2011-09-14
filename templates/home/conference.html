@@ -6,6 +6,7 @@
 
 {% block css %}
 .word:hover {text-decoration: line-through; border-bottom: none;}
+td.count {font-size:10pt; padding-left: 10px; width: 6em;}
 {% endblock %}
 
 {% block content %}
@@ -19,6 +20,7 @@
 
 <div>
 	<h2>Overall top {{wordtrends|length}} keywords</h2> 
+	
 	{%if hidden %} 
 	(excluding 
 		{% for word in hidden %}
@@ -33,10 +35,11 @@
 
 <div style="margin: 10px">
 	<table>
-	{% for word, vals in wordtrends %}
+	{% for word, vals, paper in wordtrends %}
 	<tr>
 		<td class='word'><a href="?hidden={{hidden|join:","}}{% if hidden %},{%endif%}{{word}}">{{word}}</a></td>
 		<td><span class='spark'>{% for v in vals %}{{v}}{%if not forloop.last %},{%endif%}{%endfor%}</span></td>
+		<td>{{paper.conf.year}}</td><td>{{paper.title}}</td>
 	</tr>
 	{% if forloop.counter|divisibleby:10 %}
 	</table>
@@ -48,26 +51,38 @@
 	<div style='clear:both'></div>
 </div>
 
-
-<h2>Top topics by year</h2>
-
-
-
-
 <div style="margin:10px; width: 90%; min-width: 600px; overflow-x: auto">
 	<table>
 		<tr>
-	{% for year, words in topks %}
+	{% for year, tfidfs, counts, papers in stats_by_year %}
 	<td style="vertical-align: top;">
 	<table class='topk'>
-		<tr><td class='year' colspan=2>{{year}}</td></tr>
-		{% for word, count in words %}
-			<tr><td class='count' style="font-size:10pt">{{count}}</td><td >{{word}}</td></tr>
+		<tr><th class='year' colspan=2>{{year}}</th></tr>
+		<tr><th colspan=2>By Count</th></tr>
+		{% for word, count in counts %}
+			<tr><td class='count'>{{count}}</td><td >{{word}}</td></tr>
 		{% endfor %}
+		
+		
 	</table>
 	</td>
 	{% endfor %}
 	</tr>
+	
+	<tr>
+	{% for year, tfidfs, counts, papers in stats_by_year %}
+	<td style="vertical-align: top;">
+		<table class='topk'>		
+		<tr><th colspan=2>By Tf-idf</th></tr>
+		{% for word, count in tfidfs %}
+			<tr><td class='count'>{{count|floatformat:1}}</td><td >{{word}}</td></tr>
+		{% endfor %}		
+		</table>
+	</td>
+	{% endfor %}
+	</tr>
+	
+	
 	</table>
 	<div style="clear:both">
 </div>

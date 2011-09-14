@@ -46,9 +46,38 @@ create table year_tfidf (id serial,
                     yid int,
                     word varchar(128), 
                     count int, 
-                    score float);
+                    tfidf float);
 create index tfidf_yid on year_tfidf(yid);
 create index tfidf_word on year_tfidf(word);
+
+
+drop table if exists conf_idf;
+create table conf_idf (id serial,
+                    cid int,
+                    word varchar(128), 
+                    idf float);
+create index idf_cid on conf_idf(cid);
+create index idf_word on conf_idf(word);
+
+
+-- create conference/word -> first paper with that term table
+drop table if exists first_papers;
+create table first_papers (id serial,
+                    cid int,
+                    pid int,
+                    word varchar(128));
+create index fpapers_cidword on first_papers(cid, word);
+create index fpapers_pid on first_papers(cid);
+
+
+-- create year-paper similarity table
+drop table if exists year_paper_similarity;
+create table year_paper_similarity (id serial,
+                     yid int,
+                     pid int,
+                     dist float);
+create index yps_yid on year_paper_similarity(yid);
+create index yps_pid on year_paper_similarity(pid);
 
 -- calculate conference-year+word counts
 drop table if exists year_word_counts;

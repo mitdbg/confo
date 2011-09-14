@@ -89,26 +89,13 @@ def conference(request, name, startyear, endyear):
         conf = cs[0]
 
         
-   # if (request.GET != NULL):   
-   #     for (p in request.GET.items):
-   #         print p
-
-    print request.method
-    hidelist=""
-    hideclause=""
-
-    print request.GET
-    hidelist = request.GET.get('hidden', '')
-    if hidelist.strip():
-        hidelist= [str(w.strip()) for w in hidelist.split(',') if len(w.strip()) > 0]
-        wordlist = ["'%s'" % w for w in hidelist]
-        hideclause = " and word not in (%s) " % (','.join(wordlist))
-        print hideclause
+    hidelist=[]
+    hidestr = request.GET.get('hidden', '')
+    if hidestr.strip():
+        hidelist= [str(w.strip()) for w in hidestr.split(',') if len(w.strip()) > 0]
             
-    cursor = connection.cursor()
 
-    cyears = ConfYear.objects.filter(conf = conf)
-
+    cyears = conf.confyear_set.order_by('year')
     years = [cyear.year for cyear in cyears]
     minyear, maxyear = min(years), max(years)
     if (startyear != -1 and startyear >= minyear):
@@ -123,70 +110,51 @@ def conference(request, name, startyear, endyear):
 
     years = range(curstartyear, curendyear + 1)
 
+    # topks = []
+    # for cyear in cyears:
+    #     data = cyear.top_by_tfidf(hide=hidelist)[:10]
+    #     if len(data):
+    #         topks.append((cyear.year, data))
 
-
-    years.append("all")
-    topks = []
-    overall = []
-    words = {}
-    for year in years:
-        if year == 'all':
-            query = ["select ywc.word, sum(count) as c  from years as y, year_word_counts as ywc",
-                     "where ywc.yid = y.id and y.cid = %s and y.year between %s and %s",
-                     hideclause,
-                     "group by ywc.word",
-                     "order by c desc limit 10"]
-            query = " ".join(query)
-            cursor.execute(query, [conf.pk, curstartyear, curendyear])
-        else:
-            query = ["select ywc.word, count as c  from years as y, year_word_counts as ywc",
-                     "where ywc.yid = y.id and y.year = %s  and y.cid = %s",
-                     hideclause,
-                     "order by y.year asc limit 10"]
-            query = " ".join(query)
-            cursor.execute(query, [year, conf.pk])
+    # # add term data aggregated over all years
+    # data = conf.top_by_tfidf(years=years)[:10]
+    # if len(data):
+    #     topks.append(("all", data))
         
 
-        data = cursor.fetchall()
+    #words = conf.top_by_tfidf(hide=hidelist, years=years)[:30]
+    #words = map(lambda x:x[0], words)
+    words = conf.descriptive_words(hide=hidelist)[:20]
 
-        for word, c in data:
-            if word not in words: words[word] = c
-            words[word] = max(c, words[word])
-        if len(data):
-            topks.append((year, data))
-        overall.append(sum([p[1] for p in data]))
-
-    words = sorted(words.items(), key=lambda p:p[1], reverse=True)[:20]
-
+    # get sparkline counts per word
     wordtrends = []
     maxcount = 0
-    for word,_ in words:
-        query = """select y.year, ywc.count
-        from years as y, year_word_counts as ywc
-        where ywc.yid = y.id and word = %s and y.cid = %s
-        """
-        cursor.execute(query, [word, conf.pk])
-        d = dict(cursor.fetchall())
+    for word in words:
+        d = dict(ConfYearWordCounts.objects.trend_by_year(word, conf))
         trend = [d.get(year, 0) for year in years]
-        wordtrends.append((word, trend))
+        #paper = conf.first_paper(word)
+        wordtrends.append((word, trend, None))
         maxcount = max(maxcount, max(trend))
-        print word, maxcount
     wordtrends.sort(key=lambda pair: max(pair[1]), reverse=True)
-    cursor.close()
 
+    # list of top words (by tfidf) and papers by year
+    cyarr = cyears.filter(year__in=years)
+    years = [cy.year for cy in cyarr]
+    tfidf_by_year = [cy.top_by_tfidf()[:10] for cy in cyarr]
+    count_by_year = [cy.top_by_count()[:10] for cy in cyarr]
+    papers_by_year = [cy.similar_papers()[:10] for cy in cyarr]
 
+    stats_by_year = zip(years, tfidf_by_year, count_by_year, papers_by_year)
     
-    print "HIDELIST=",hidelist
     return render_to_response("home/conference.html",
-                              {'topks' : topks,
-                               'conf' : conf,
-                               'overall' : overall,
+                              {'conf' : conf,
                                'wordtrends' : wordtrends,
                                'maxcount' : maxcount,
                                'hidden': hidelist,
                                'years': range(minyear,maxyear+1),
                                'selectedstartyear': curstartyear,
-                               'selectedendyear': curendyear
+                               'selectedendyear': curendyear,
+                               'stats_by_year' : stats_by_year,
                                },
                               context_instance=RequestContext(request))
 

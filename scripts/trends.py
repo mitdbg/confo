@@ -1,5 +1,6 @@
 import os
 import sys
+from util import similarity
 import nltk
 from nltk.corpus import stopwords
 
@@ -13,16 +14,13 @@ from confo.home.models import *
 from django.db import connection, transaction
 
 
-# 
-
-
-
-
 # for every conference year, get the counts of top 20
 @transaction.commit_manually
-def bar():
+def get_conf_terms():
     cur = connection.cursor()
-    cur.execute("select yid, word, count from year_word_counts order by yid, count desc;")
+    sql = """select yid, word, tfidf
+             from year_tfidf as t order by yid asc, tfidf desc;"""
+    cur.execute(sql)
     curyid = None
     d = {}
     wtoy = {}
@@ -42,7 +40,7 @@ def bar():
 
 # for every paper, extract the terms
 @transaction.commit_manually
-def foo():
+def get_paper_terms():
     cur = connection.cursor()
     cur.execute("select pid, word, c from papers_word_counts order by pid, c desc;")
     curpid = None
@@ -61,47 +59,35 @@ def foo():
 
     return d, w_to_pid
 
-# for each year, what were the top papers by cosine distance?
 
-def cosine(ywcounts, pwcounts):
-    pdict = dict(pwcounts)
-    numerator = 0.0
-    denominator = 0.0
-    for w, c in ywcounts:
-        numerator += c * pdict.get(w,0)
-        denominator += c
+if __name__ == "__main__":
+    print >> sys.stderr, "loading conference years"
+    ytow, wtoy = get_conf_terms()
+    print >> sys.stderr, "loading paper word counts"
+    ptow, wtop = get_paper_terms()
+    print >> sys.stderr, "Calculating cosines! Gonna get 'er done!"
 
-    denominator *= sum(map(lambda x:x[1], pwcounts))
-    return numerator / denominator
+    totallen = len(ytow)
+    idx = 0
 
-import sys
-print >> sys.stderr, "loading conference years"
-ytow, wtoy = bar()
-print >> sys.stderr, "loading paper word counts"
-ptow, wtop = foo()
-print >> sys.stderr, "Calculating cosines! Gonna get 'er done!"
+    for y, ywcounts in ytow.items():
+        # gather all relevant publications
+        pids = set()
+        for w, c in ywcounts:
+            pids.update(wtop.get(w,[]))
 
-totallen = len(ytow)
-idx = 0
+        # for each publication, calculate cosine
+        scores = []
+        for pid in pids:
+            pwcounts = ptow[pid]
 
-for y, ywcounts in ytow.items():
-    # gather all relevant publications
-    pids = set()
-    for w, c in ywcounts:
-        pids.update(wtop.get(w,[]))
+            scores.append((pid, similarity(ywcounts, pwcounts)))
 
-    # for each publication, calculate cosine
-    scores = []
-    for pid in pids:
-        pwcounts = ptow[pid]
+        scores.sort(key=lambda x: x[1], reverse=True)
+        for pid, score in scores[:20]:
+            print "%d,%d,%f" % (y,pid,score)
 
-        scores.append((pid, cosine(ywcounts, pwcounts)))
+        idx += 1
 
-    scores.sort(key=lambda x: x[1], reverse=True)
-    for pid, score in scores[:20]:
-        print "%d,%d,%f" % (y,pid,score)
 
-    idx += 1
-
-        
 

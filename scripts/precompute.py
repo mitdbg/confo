@@ -1,5 +1,6 @@
 import os
 import sys
+from util import *
 
 ROOT = os.path.abspath('%s/../..' % os.path.abspath(os.path.dirname(__file__)))
 sys.path.append(ROOT)
@@ -37,7 +38,56 @@ def top_conferences():
         counts = [d.get(year, 0) for year in years]
         conf.counts.yearcounts = ','.join(map(str,counts))
         conf.counts.save()
+
+
+def first_papers():
+    c = connection.cursor()
+    print "loading words->pid"
+    c.execute("select word, pid from words")
+    wtop = {}
+    for w, p in c:
+        ps = wtop.get(w,set())
+        ps.add(p)
+        wtop[w]=ps
+
+    print "loading cid->pid->yid"
+    c.execute("select y.cid, p.id, y.id from papers as p, years as y where p.cid = y.id")
+    ctoptoy = {}
+    for cid, pid, yid in c:
+        if cid not in ctoptoy: ctoptoy[cid] = {}
+        ctoptoy[cid][pid] = yid
+
+    print "leading cid->word"
+    sql = """select c.id, ci.word
+             from conferences as c, conf_idf as ci
+             where ci.cid = c.id order by ci.idf"""
+    c.execute(sql)
+    f = file("first_papers.txt", 'w')
+
+    print "writing data out"
+    prevcid = None
+    n = 0
+    for cid, word in c:
+
+        ptoy = ctoptoy[cid]
+
+        pbyy = [(pid, ptoy[pid]) for pid in wtop.get(word,[]) if pid in ptoy]
+        pbyy.sort(key=lambda x: x[1])
+        if len(pbyy):
+            pid, year = pbyy[0]
+            print >>f, "%d\t%d\t%s" % (cid, pid, word)
+    f.close()
+    c.commit()
+
+    print "copying to database"
+    load_db = copy_to_table('first_papers', ['cid', 'pid', 'word'], './first_papers.txt')
+    load_db()
+    
+    
+
     
 if __name__ == '__main__':
-    
     top_conferences()
+
+    first_papers()
+    
