@@ -11,12 +11,18 @@ from confo.home.models import *
 from django.db import connection, transaction
 from django.db.models import *
 
-from dblogging import load_logger
-from operator import attrgetter
+from dblogging import LogOrCache
+from operator import itemgetter
 
 TOPN = 10
 
-def conf_words(cur):
+def confs_words(cur):
+    print "Getting conference counts"
+    q = """select y.cid, w.id, sum(ywc.count)
+           from years as y, year_word_counts as ywc, words as w
+           where y.id = ywc.yid AND w.word = ywc.word
+           group by y.cid, w.id;"""
+    cur.execute(q)
     confs = {}
     words = {}
     for cid, wid, count in cur:
@@ -31,44 +37,59 @@ def conf_words(cur):
             words[wid] = word
     return (confs, words)
 
+def l2norm(vec):
+    sum_squares = sum(count*count for wid, count in vec)
+    return sqrt(sum_squares)
+
 def similarity(vec1, vec2):
     """
     calculates cosine similarity
     """
     dict2 = dict(vec2)
     prods = (count*dict2[wid] for wid, count in vec1 if wid in dict2)
-    return reduce(lambda x,y: x+y, prods)
+    numerator = 1.0 * sum(prods)
+    denominator = 1.0 * l2norm(vec1) * l2norm(vec2)
+    return numerator / denominator
 
-def topn_similar(cid, vector, candidates, conf_words):
+def calc_similarities(cid, vector, candidates, conf_words):
     similar = []
     for cand in candidates:
         cand_vector = conf_words[cand]
         sim = similarity(vector, cand_vector)
-        sc = SimilarConferences(fromconf=cid, toconf=cand, similarity=sim)
+        sc = {'fromconf': cid, 'toconf': cand, 'similarity': sim}
         similar.append(sc)
-    
-    sort_sim = sorted(similar, key=attrgetter('similarity'), reverse=True)
+    return similar
+
+def write_topn(similar, table):
+    sort_sim = sorted(similar, key=itemgetter('similarity'), reverse=True)
     keepers = sort_sim[:TOPN]
     for keeper in keepers:
-        keeper.save()
+        table.get(None, keeper, False)
+
+def get_table(mode):
+    return LogOrCache(["fromconf","toconf","similarity"], "similar_conferences.txt", mode, "similar_conferences")
+
+def write_similar(conf_words, word_confs):
+    print "Calculating similarities, writing to file"
+    write_table = get_table("w")
+    for cid, vector in conf_words.items():
+        cand_sets = [word_confs[wid] for wid, count in vector]
+        candidates = reduce(lambda x, y: x | y, cand_sets)
+        similar = calc_similarities(cid, vector, candidates, conf_words)
+        write_topn(similar, write_table)
+    write_table.close()
+
+def load_similar(cur):
+    print "Loading file into similar conferences table"
+    read_table = get_table("r")
+    read_table.logtodb(cur)
 
 @transaction.commit_on_success
 def similar_conferences():
-    SimilarConferences.objects.all().delete()
-
     cur = connection.cursor()
-    print "Getting conference counts"
-    q = """select y.cid, w.id, sum(ywc.count)
-           from years as y, year_word_counts as ywc, words as w
-           where y.id = ywc.yid AND w.word = ywc.word
-           group by y.cid, w.id;"""
-    cur.execute(q)
     conf_words, word_confs = confs_words(cur)
-    print "Calculating similarities"
-    for cid, vector in confs.items():
-        cand_sets = [word_confs[wid] for wid, count in vector]
-        candidates = reduce(lambda x, y: x | y, cand_sets)
-        topn_similar(cid, vector, candidates, conf_words)
+    write_similar(conf_words, word_confs)
+#    load_similar(cur)
 
 if __name__ == '__main__':
     similar_conferences()
