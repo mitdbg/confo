@@ -70,7 +70,7 @@ def conference_all(request, cs=None):
                                'maxcount' : maxcount},
                               context_instance=RequestContext(request))
 
-@cache_page(60 * 1000)
+#@cache_page(60 * 1000)
 def conferencenoyears(request, name):
     return conference(request,name,-1,-1)
 
@@ -177,6 +177,9 @@ def conference(request, name, startyear, endyear):
 
     
     print "HIDELIST=",hidelist
+
+    sim_conf = SimilarConferences.objects.filter(fromconf = conf).order_by('-similarity')
+
     return render_to_response("home/conference.html",
                               {'topks' : topks,
                                'conf' : conf,
@@ -186,7 +189,8 @@ def conference(request, name, startyear, endyear):
                                'hidden': hidelist,
                                'years': range(minyear,maxyear+1),
                                'selectedstartyear': curstartyear,
-                               'selectedendyear': curendyear
+                               'selectedendyear': curendyear,
+                               'similarconferences': sim_conf,
                                },
                               context_instance=RequestContext(request))
 

@@ -12,3 +12,5 @@ python2.7 loadwords.py
 # calculate other statistics
 psql -f ./setup.sql confo confo
 python2.7 precompute.py
+
+python2.7 similar_conferences.py

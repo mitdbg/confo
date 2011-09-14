@@ -1,5 +1,6 @@
 import os
 import sys
+from math import sqrt
 
 ROOT = os.path.abspath('%s/../..' % os.path.abspath(os.path.dirname(__file__)))
 sys.path.append(ROOT)
@@ -15,6 +16,8 @@ from dblogging import LogOrCache
 from operator import itemgetter
 
 TOPN = 10
+VECTOR_SIZE = 20
+UNIQUE_FRAC = .05
 
 def confs_words(cur):
     print "Executing conference count query"
@@ -29,7 +32,9 @@ def confs_words(cur):
     words = {}
     for cid, wid, count in cur:
         conf = confs.get(cid, [])
-        conf.append((wid, count))
+        if len(conf) == VECTOR_SIZE:
+            continue
+        conf.append((wid, float(count)))
         if len(conf) == 1:
             confs[cid] = conf
 
@@ -46,17 +51,18 @@ def l2norm(vec):
 def similarity(vec1, vec2):
     dict2 = dict(vec2)
     prods = (count*dict2[wid] for wid, count in vec1 if wid in dict2)
-    numerator = 1.0 * sum(prods)
+    numerator = 1.0 * float(sum(prods))
     denominator = 1.0 * l2norm(vec1) * l2norm(vec2)
     return numerator / denominator
 
 def calc_similarities(cid, vector, candidates, conf_words):
     similar = []
     for cand in candidates:
-        cand_vector = conf_words[cand]
-        sim = similarity(vector, cand_vector)
-        sc = {'fromconf': cid, 'toconf': cand, 'similarity': sim}
-        similar.append(sc)
+        if cid != cand:
+            cand_vector = conf_words[cand]
+            sim = similarity(vector, cand_vector)
+            sc = {'fromconf': cid, 'toconf': cand, 'similarity': sim}
+            similar.append(sc)
     return similar
 
 def write_topn(similar, table):
@@ -73,9 +79,11 @@ def write_similar(conf_words, word_confs):
     write_table = get_table("w")
     for cid, vector in conf_words.items():
         cand_sets = [word_confs[wid] for wid, count in vector]
-        candidates = reduce(lambda x, y: x | y, cand_sets)
-        similar = calc_similarities(cid, vector, candidates, conf_words)
-        write_topn(similar, write_table)
+        cand_sets = filter(lambda x: len(x) < UNIQUE_FRAC * len(conf_words), cand_sets)
+        if len(cand_sets) > 0:
+            candidates = reduce(lambda x, y: x | y, cand_sets)
+            similar = calc_similarities(cid, vector, candidates, conf_words)
+            write_topn(similar, write_table)
     write_table.close()
 
 def load_similar(cur):
@@ -85,10 +93,11 @@ def load_similar(cur):
 
 @transaction.commit_on_success
 def similar_conferences():
+    SimilarConferences.objects.all().delete()
     cur = connection.cursor()
     conf_words, word_confs = confs_words(cur)
     write_similar(conf_words, word_confs)
-#    load_similar(cur)
+    load_similar(cur)
 
 if __name__ == '__main__':
     similar_conferences()

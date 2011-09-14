@@ -69,8 +69,18 @@
 	{% endfor %}
 	</tr>
 	</table>
-	<div style="clear:both">
+	<div style="clear:both"></div>
 </div>
+
+<h2>Similar Conferences</h2>
+<div style="margin: 10px">
+  {% for sc in similarconferences %}
+    <span style="padding: 0px 10px 0px 0px"><a href="/conference/{{ sc.toconf.name }}">{{ sc.toconf.name }}</a></span>
+	{% if forloop.counter|divisibleby:5 %}
+          <br />
+	{% endif %}
+  {% endfor %}
+  <div style="clear:both"></div>
 </div>
 {% endblock %}
 
