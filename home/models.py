@@ -31,8 +31,8 @@ class ConfYearWordCounts(models.Model):
 class SimilarConferences(models.Model):
     class Meta:
         db_table = "similar_conferences"
-    fromconf = models.ForeignKey(Conference, related_name='similar_from_conferences', db_index=True)
-    toconf = models.ForeignKey(Conference, related_name='similar_to_conferences', db_index=True)
+    fromconf = models.ForeignKey(Conference, db_column="fromconf", related_name='similar_from_conferences', db_index=True)
+    toconf = models.ForeignKey(Conference, db_column="toconf", related_name='similar_to_conferences')
     similarity = models.FloatField()             
 
 class Author(models.Model):
