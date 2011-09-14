@@ -70,7 +70,7 @@ def conference_all(request, cs=None):
                                'maxcount' : maxcount},
                               context_instance=RequestContext(request))
 
-@cache_page(60 * 1000)
+#@cache_page(60 * 1000)
 def conferencenoyears(request, name):
     return conference(request,name,-1,-1)
 
@@ -146,6 +146,9 @@ def conference(request, name, startyear, endyear):
 
     stats_by_year = zip(years, tfidf_by_year, count_by_year, papers_by_year)
     
+
+    sim_conf = SimilarConferences.objects.filter(fromconf = conf).order_by('-similarity')
+
     return render_to_response("home/conference.html",
                               {'conf' : conf,
                                'wordtrends' : wordtrends,
@@ -155,6 +158,7 @@ def conference(request, name, startyear, endyear):
                                'selectedstartyear': curstartyear,
                                'selectedendyear': curendyear,
                                'stats_by_year' : stats_by_year,
+                               'similarconferences': sim_conf,
                                },
                               context_instance=RequestContext(request))
 

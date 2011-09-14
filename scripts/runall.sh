@@ -19,6 +19,10 @@ python2.7 trends.py > trends.txt
 python2.7 loadtrends.py
 
 
+python2.7 similar_conferences.py
+
 # update via django models
 python2.7 precompute.py
+
+
 

@@ -32,6 +32,7 @@ Setup the database
       createdb confo
       createuser confo
       python manage.py syncdb
+      python manage.py createcachetable cache
 
 Parse and Load the database, and precompute some statistics
 
