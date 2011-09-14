@@ -17,12 +17,13 @@ from operator import itemgetter
 TOPN = 10
 
 def confs_words(cur):
-    print "Getting conference counts"
+    print "Executing conference count query"
     q = """select y.cid, w.id, sum(ywc.count)
            from years as y, year_word_counts as ywc, words as w
            where y.id = ywc.yid AND w.word = ywc.word
            group by y.cid, w.id;"""
     cur.execute(q)
+    print "Query executed, generating vectors and inverted index"
     confs = {}
     words = {}
     for cid, wid, count in cur:
