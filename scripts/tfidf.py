@@ -1,7 +1,7 @@
 import math
 import os
 import sys
-import numpy as np
+
 
 ROOT = os.path.abspath('%s/../..' % os.path.abspath(os.path.dirname(__file__)))
 sys.path.append(ROOT)
@@ -62,8 +62,10 @@ if __name__ == '__main__':
     for cid, yids in d.items():
         idfs = get_idf(cid, yids)
         idfs_ordered = sorted(idfs.items(), key=lambda x:x[1])
-        avg = np.mean(map(lambda x:x[1], idfs_ordered))
-        std = np.std(map(lambda x:x[1], idfs_ordered))
+        vals = map(lambda x:x[1], idfs_ordered)
+        if len(vals) == 0: continue
+        avg = sum(vals) / float(len(vals))
+        std = sum(map(lambda v: (v - avg) ** 2, vals)) / float(len(vals))
         #idfs_ordered = filter(lambda x: x[1] < (avg - std), idfs_ordered)
         for word, idf in idfs_ordered:
             fidf.write("%d,%s,%f\n" % (cid, word, idf))
@@ -74,7 +76,6 @@ if __name__ == '__main__':
             stats = []
             for word, idf in idfs.items():
                 stats.append((word, idf * tfs.get(word,0)))
-            stats = filter(lambda x: x[1] != 0, stats)
             stats.sort(key=lambda x:x[1], reverse=True)
             for word, tfidf in stats:
                 ftfidf.write("%d,%s,%d,%f\n" % (yid, word, tfs.get(word,0), tfidf))
