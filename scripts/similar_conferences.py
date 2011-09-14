@@ -32,6 +32,9 @@ def conf_words(cur):
     return (confs, words)
 
 def similarity(vec1, vec2):
+    """
+    calculates cosine similarity
+    """
     dict2 = dict(vec2)
     prods = (count*dict2[wid] for wid, count in vec1 if wid in dict2)
     return reduce(lambda x,y: x+y, prods)

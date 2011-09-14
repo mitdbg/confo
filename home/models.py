@@ -54,3 +54,12 @@ class Word(models.Model):
     paper = models.ForeignKey(Paper, db_column="pid", db_index=True)
     word = models.CharField(max_length=128, db_column="word", db_index=True)
     
+
+class Tfidf(models.Model):
+    class Meta:
+        db_table = "year_tfidf"
+    conf = models.ForeignKey(ConfYear, db_column="yid", related_name="tfidf",
+                             db_index=True)
+    word = models.CharField(max_length=128, db_column='word', db_index=True)
+    count = models.IntegerField(db_column="count")
+    score = models.FloatField(db_column="score")

@@ -39,6 +39,17 @@ select pid, word,  count(*) as c
 from words 
 group by pid, word having count(*) > 1  order by c desc;
 
+
+-- create tfidf table
+drop table if exists year_tfidf;
+create table year_tfidf (id serial,
+                    yid int,
+                    word varchar(128), 
+                    count int, 
+                    score float);
+create index tfidf_yid on year_tfidf(yid);
+create index tfidf_word on year_tfidf(word);
+
 -- calculate conference-year+word counts
 drop table if exists year_word_counts;
 create table year_word_counts as 

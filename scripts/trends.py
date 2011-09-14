@@ -13,6 +13,9 @@ from confo.home.models import *
 from django.db import connection, transaction
 
 
+# 
+
+
 
 
 # for every conference year, get the counts of top 20
