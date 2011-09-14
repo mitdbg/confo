@@ -18,10 +18,11 @@ TOPN = 10
 
 def confs_words(cur):
     print "Executing conference count query"
-    q = """select y.cid, w.id, sum(ywc.count)
-           from years as y, year_word_counts as ywc, words as w
-           where y.id = ywc.yid AND w.word = ywc.word
-           group by y.cid, w.id;"""
+    q = """select y.cid, ywc.word, sum(ywc.count) AS total
+           from years as y, year_word_counts as ywc
+           where y.id = ywc.yid
+           group by y.cid, ywc.word
+           order by y.cid, total DESC;"""
     cur.execute(q)
     print "Query executed, generating vectors and inverted index"
     confs = {}
