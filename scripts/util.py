@@ -22,7 +22,7 @@ def similarity(vec1, vec2):
     dict2 = dict(vec2)
     prods = (count*dict2[wid] for wid, count in vec1 if wid in dict2)
     numerator = 1.0 * float(sum(prods))
-    denominator = 1.0 * l2norm(vec1) * l2norm(vec2)
+    denominator = 1.0 * l2norm(vec1) * l2norm(vec2) + 1.0
     return numerator / denominator
 
 
@@ -111,7 +111,7 @@ def indices_decorator(tables=[]):
 def copy_to_table(table, cols, fname):
     abspath = os.path.abspath(fname)
 
-    @transaction.commit_manually
+    @transaction.commit_on_success
     @indices_decorator([table])
     def load_db():
         fields = ['yid', 'word', 'count', 'score']
