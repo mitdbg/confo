@@ -248,7 +248,6 @@ def author(request, name=None):
     years = set()
 
     for row in cursor:
-        print row
         confname, year, c = row
         if confname not in confdata: confdata[confname] = {}
         confdata[confname][year] = c
@@ -270,68 +269,32 @@ def author(request, name=None):
 
     
     # terms information
-    query = """select word, count(*) as c
-    from words as w, authors as a, papers as p, papers_authors as ap
-    where ap.paper_id = p.id and ap.author_id = a.id and
-    a.id = %s and w.pid = p.id
-    group by w.word
-    order by c desc
-    limit 20
-    """
-    cursor.execute(query, [author.pk])
-    allwords = [(w,c) for w,c in cursor]
+    allwords = author.top_words_by_count()[:20]
+
     wordyears = {}
     if len(allwords):
+        # calculate word display size as 3rd element of tuple
         maxwordcount = max(allwords, key=lambda p: p[1])[1]
         allwords = map(lambda (w,c): (w,c, int(math.ceil(25.0 * c / maxwordcount)) + 5), allwords)
 
-        query = """select y.year, word, count(*) as c
-        from words as w, authors as a, papers as p, papers_authors as ap, years as y
-        where ap.paper_id = p.id and ap.author_id = a.id and p.cid = y.id and
-        a.id = %s and w.pid = p.id
-        group by w.word, y.year
-        order by y.year asc, c desc
-        """
-        cursor.execute(query, [author.pk])
-        uniquewords = {}
-        for y, word, c in cursor:
-            words = wordyears.get(y, [])
-            if len(words) > 20: continue
-            words.append((word, c))
-            wordyears[y] = words
-            uniquewords[word] = uniquewords.get(word,0)+c
+        # create a table where
+        # each row represents a year
+        # columns are counts for each word
+        ywc = author.word_counts_by_year(incwords=map(lambda w:w[0], allwords))
 
-        for y in wordyears.keys():
-            words = wordyears[y]            
-            words = map(lambda (w,c): (w,(c, int(math.ceil(25 * float(c) / maxwordcount)) + 5)), words)
-            words = dict(words)
-            wordyears[y] = words
-
-        uniquewords = [p[0] for p in sorted(uniquewords.items(), key=lambda p: p[1], reverse=True)[:10]]
-        years = range(min(wordyears.keys()), max(wordyears.keys())+1)
-        labels = []
-        labels.extend(map(str,years))
-        labels.append('name')
+        # create the table
         table = []
-
-
-        labels = dict([(label, {"name" : label, 'unit': ''}) for label in labels])
-
-        
-        for word in uniquewords:
-            row = {'name' : word}
-            prev = 0
-            for year in years:
-                cur = wordyears.get(year,{}).get(word, (0,0))[0]
-                row[str(year)] = cur
-                prev = cur
+        labels = ['year']
+        labels.extend(map(lambda (w,c,s):w, allwords))
+        for y in years:
+            row = [y]
+            wc = ywc.get(y, {})
+            for (w,_,_) in allwords:
+                row.append(wc.get(w,0))
             table.append(row)
-        import json
-        labels = json.dumps(labels)            
-        table = json.dumps(table)
     else:
-        table = json.dumps([])
-        labels = json.dumps([])
+        table = []
+        labels = []
     
                                            
     return render_to_response("home/author.html",

@@ -110,6 +110,32 @@ class Author(models.Model):
     name = models.TextField(db_column="name", db_index=True)
     pubcount = models.IntegerField(default=-1, db_column='pubcount', null=True)
 
+
+    def top_words_by_count(self, hide=[]):
+        words = Word.objects.filter(paper__authors = self)
+        words = words.exclude(word__in=hide)
+        words = words.values('word').annotate(c=Count('id')).order_by('-c')
+        return map(lambda d: (d['word'], d['c']), words)
+
+    def word_counts_by_year(self, incwords=[]):
+        """
+        returns a dictionary of year->{word->count}
+        """
+        words = Word.objects.filter(paper__authors = self).filter(word__in=incwords)
+        words = words.values('word', 'paper__conf__year')
+        words = words.annotate(c=Count('id'))
+        ywc = {}
+        for obj in words:
+            w,y,c = obj['word'], obj['paper__conf__year'], obj['c']
+            if y not in ywc: ywc[y] = {}
+            ywc[y][w] = c
+        for d in ywc.values():
+            for w in incwords:
+                d[w] = d.get(w, 0)
+        return ywc
+
+    
+
 class Paper(models.Model):
     class Meta:
         db_table = "papers"

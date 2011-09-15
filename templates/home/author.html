@@ -1,6 +1,47 @@
 {% extends "home/base.html" %}
 
 {% block head %}
+<script>
+google.load("visualization", "1", {packages:["corechart"]});
+{% if pclabels and pcdata %}
+google.setOnLoadCallback(drawChart);
+{% endif %}
+
+function drawChart() {
+  var data = new google.visualization.DataTable();
+  {% for label in pclabels %}
+	{% if forloop.first %}
+  		data.addColumn('string', '{{label}}');
+    {% else %}
+  		data.addColumn('number', '{{label}}');
+    {% endif %}
+  {% endfor %}
+
+
+  data.addRows([
+	{% for row in pcdata %} 
+	[
+		{% for col in row %}
+			{% if forloop.first %}'{{col}}'{% else %}{{col}}{% endif %}
+			{% if not forloop.last %},{% endif %}
+		{% endfor %}
+	]
+	{% if not forloop.last %},{%endif%}
+	{% endfor %}
+
+  ]);
+
+  var chart = new google.visualization.AreaChart(document.getElementById('stackgraph'));
+  chart.draw(data, {width: 800, height: 500,
+					chartArea: {left:60,top:20,width:740,height:420},
+                    hAxis: {title: 'Year', },
+                    vAxis: {title: 'Term Counts', },
+					legend: 'none',
+					lineWidth: 0,
+					isStacked: true,
+                   });
+}
+</script>
 {% endblock %}
 
 {% block header %}
@@ -36,6 +77,10 @@
 	
 	
 	$("#yeartaball").click();
+	
+	
+	
+	// create stacked graph
 
 {% endblock %}
 
@@ -112,6 +157,7 @@
 
 <div style="height: 20px">&nbsp;</div>
 <h2>Trends for top terms over publication history</h2>
-	{% include 'home/test.html' %}
+	<div id="stackgraph"></div>
+	<!-- used to include test.html -->
 	<div style="clear:both"/>
 {% endblock %}
