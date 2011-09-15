@@ -6,7 +6,7 @@
 
 {% block css %}
 .word:hover {text-decoration: line-through; border-bottom: none;}
-td.count {font-size:10pt; padding-left: 10px; width: 6em;}
+td.count {font-size:10pt; padding-right: 10px; padding-left: 10px; width: 6em; text-align: right;}
 {% endblock %}
 
 {% block content %}
@@ -73,7 +73,7 @@ td.count {font-size:10pt; padding-left: 10px; width: 6em;}
 	<td style="vertical-align: top;">
 		<table class='topk'>		
 		<tr><th class='year' colspan=2>{{year}}</th></tr>
-		<tr><th colspan=2>By Tf-idf</th></tr>
+		<!--<tr><th colspan=2>By Tf-idf</th></tr>-->
 		{% for word, count in tfidfs %}
 			<tr><td class='count'>{{count|floatformat:1}}</td><td >{{word}}</td></tr>
 		{% endfor %}		
