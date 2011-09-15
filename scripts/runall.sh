@@ -12,7 +12,7 @@ python2.7 loadwords.py
 # calculate other statistics
 psql -f ./setup.sql confo confo
 
-python2.7 tfidf.py > tfidf.txt
+python2.7 tfidf.py 
 python2.7 loadtfidf.py
 
 python2.7 trends.py > trends.txt

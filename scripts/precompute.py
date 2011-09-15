@@ -75,9 +75,9 @@ def first_papers():
         pbyy.sort(key=lambda x: x[1])
         if len(pbyy):
             pid, year = pbyy[0]
-            print >>f, "%d\t%d\t%s" % (cid, pid, word)
+            print >>f, "%d,%d,%s" % (cid, pid, word)
     f.close()
-    c.commit()
+    transaction.commit()
 
     print "copying to database"
     load_db = copy_to_table('first_papers', ['cid', 'pid', 'word'], './first_papers.txt')

@@ -41,14 +41,10 @@ class Conference(models.Model):
         return [(t['word'], t['sumcount']) for t in ts[:20]]
 
     def first_paper(self, word):
-        print "finding paper for ", word
-        papers = Paper.objects.filter(conf__conf=self).filter(words__word=word).order_by("conf__year")
-        if len(papers):
-            print "found", papers[0].title
-            return papers[0]
-        print "notfound"
-        return None
-    
+        try:
+            return self.firstpapers.get(word=word).paper
+        except:
+            return None
 
 
 class ConferenceCounts(models.Model):
@@ -155,3 +151,14 @@ class YearPaperSimilarity(models.Model):
     paper = models.ForeignKey(Paper, db_column='pid', related_name="similarconfyears",
                               db_index=True)
     dist = models.FloatField(db_column="dist")
+
+class FirstPaper(models.Model):
+    class Meta:
+        db_table = 'first_papers'
+
+    conf = models.ForeignKey(Conference, db_column='cid', related_name='firstpapers',
+                             db_index=True)
+    paper = models.ForeignKey(Paper, db_column='pid', related_name="similarconfyears",
+                              db_index=True)
+    word = models.CharField(max_length=128, db_column='word', db_index=True)
+

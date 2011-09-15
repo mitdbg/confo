@@ -132,8 +132,8 @@ def conference(request, name, startyear, endyear):
     for word in words:
         d = dict(ConfYearWordCounts.objects.trend_by_year(word, conf))
         trend = [d.get(year, 0) for year in years]
-        #paper = conf.first_paper(word)
-        wordtrends.append((word, trend, None))
+        paper = conf.first_paper(word)
+        wordtrends.append((word, trend, paper))
         maxcount = max(maxcount, max(trend))
     wordtrends.sort(key=lambda pair: max(pair[1]), reverse=True)
 
