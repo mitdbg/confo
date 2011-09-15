@@ -51,11 +51,11 @@ def first_papers():
         wtop[w]=ps
 
     print "loading cid->pid->yid"
-    c.execute("select y.cid, p.id, y.id from papers as p, years as y where p.cid = y.id")
+    c.execute("select y.cid, p.id, y.year from papers as p, years as y where p.cid = y.id")
     ctoptoy = {}
-    for cid, pid, yid in c:
+    for cid, pid, year in c:
         if cid not in ctoptoy: ctoptoy[cid] = {}
-        ctoptoy[cid][pid] = yid
+        ctoptoy[cid][pid] = year
 
     print "leading cid->word"
     sql = """select c.id, ci.word
