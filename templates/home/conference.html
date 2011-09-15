@@ -6,6 +6,10 @@
 
 {% block css %}
 .word:hover {text-decoration: line-through; border-bottom: none;}
+table.papers td {vertical-align: top; padding 5px;}
+.paper {font-size:10pt; }
+.authors {font-size:8pt;}
+.author {padding-right: 5px;}
 td.count {font-size:10pt; padding-right: 10px; padding-left: 10px; width: 6em; text-align: right;}
 {% endblock %}
 
@@ -89,14 +93,14 @@ td.count {font-size:10pt; padding-right: 10px; padding-left: 10px; width: 6em; t
 
 <h2>First Papers to use Top {{wordtrends|length}} Popular Keywords</h2>
 <div style="margin: 10px">
-	<table>
+	<table class='papers'>
 	{% for word, vals, paper in wordtrends %}
 	<tr>
 		<td class='word'><a href="?hidden={{hidden|join:","}}{% if hidden %},{%endif%}{{word}}">{{word}}</a></td>
 		<td>{{paper.conf.year}}</td>
 		<td>
-			<div>{{paper.title}}</div>
-			<div>{% for author in paper.authors %}{{author.name}}{% endfor %}</div>
+			<div class='paper'>{{paper.title}}</div>
+			<div class='authors'>{% for author in paper.authors.all %}<span class='author'>{{author.name}}</span>{% endfor %}</div>
 		</td>
 	</tr>
 	{% endfor %}
