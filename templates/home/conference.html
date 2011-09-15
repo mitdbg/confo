@@ -39,7 +39,6 @@ td.count {font-size:10pt; padding-left: 10px; width: 6em;}
 	<tr>
 		<td class='word'><a href="?hidden={{hidden|join:","}}{% if hidden %},{%endif%}{{word}}">{{word}}</a></td>
 		<td><span class='spark'>{% for v in vals %}{{v}}{%if not forloop.last %},{%endif%}{%endfor%}</span></td>
-		<td>{{paper.conf.year}}</td><td>{{paper.title}}</td>
 	</tr>
 	{% if forloop.counter|divisibleby:10 %}
 	</table>
@@ -85,6 +84,24 @@ td.count {font-size:10pt; padding-left: 10px; width: 6em;}
 	
 	</table>
 	<div style="clear:both"></div>
+</div>
+
+<h2>First Papers to use Top {{wordtrends|length}} Popular Keywords</h2>
+<div style="margin: 10px">
+	<table>
+	{% for word, vals, paper in wordtrends %}
+	<tr>
+		<td class='word'><a href="?hidden={{hidden|join:","}}{% if hidden %},{%endif%}{{word}}">{{word}}</a></td>
+		<td>{{paper.conf.year}}</td>
+		<td>
+			<div>{{paper.title}}</div>
+			<div>{% for author in paper.authors %}{{author.name}}{% endfor %}</div>
+		</td>
+	</tr>
+	{% endfor %}
+
+	</table>
+	<div style='clear:both'></div>
 </div>
 
 <h2>Similar Conferences</h2>
