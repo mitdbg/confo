@@ -158,7 +158,7 @@ class FirstPaper(models.Model):
 
     conf = models.ForeignKey(Conference, db_column='cid', related_name='firstpapers',
                              db_index=True)
-    paper = models.ForeignKey(Paper, db_column='pid', related_name="similarconfyears",
+    paper = models.ForeignKey(Paper, db_column='pid', related_name="firstpapers",
                               db_index=True)
     word = models.CharField(max_length=128, db_column='word', db_index=True)
 
