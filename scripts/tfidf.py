@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     
     fidf = file("idf.txt",'w')
-    ftfidf = file('tfidfetxt', 'w')
+    ftfidf = file('tfidf.txt', 'w')
 
     for cid, yids in d.items():
         idfs = get_idf(cid, yids)
