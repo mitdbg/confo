@@ -19,12 +19,12 @@ def get_idf(cid, yids):
     cur = connection.cursor()
     if len(yids) == 0:
         print >> sys.stderr, "%d had no years" % cid
-    idfq = """select word, count(count), sum(count) as s
+    idfq = """select word, count(count), sum(count), count(distinct years.id) as s
               from years, year_word_counts as ywc where years.cid = %s and ywc.yid = years.id group by word;"""
     cur.execute(idfq, (cid,))
     idfs = {}
-    for word, c, s in cur:
-        idf = math.log(float(len(yids)) / (float(c)), 10)
+    for word, c, s, yc in cur:
+        idf = math.log(len(yids) / (float(yc)), 10)
         idfs[word] = idf
         if idf == 0:
             print >> sys.stderr, "%d\t%s\t%d\t%d\t%f" % (cid, word, len(yids), c, idf)
@@ -64,8 +64,8 @@ if __name__ == '__main__':
         idfs_ordered = sorted(idfs.items(), key=lambda x:x[1])
         vals = map(lambda x:x[1], idfs_ordered)
         if len(vals) == 0: continue
-        avg = sum(vals) / float(len(vals))
-        std = sum(map(lambda v: (v - avg) ** 2, vals)) / float(len(vals))
+        #avg = sum(vals) / float(len(vals))
+        #std = sum(map(lambda v: (v - avg) ** 2, vals)) / float(len(vals))
         #idfs_ordered = filter(lambda x: x[1] < (avg - std), idfs_ordered)
         for word, idf in idfs_ordered:
             fidf.write("%d,%s,%f\n" % (cid, word, idf))
@@ -75,7 +75,7 @@ if __name__ == '__main__':
             tfs = tfs_by_y.get(yid,{})
             stats = []
             for word, idf in idfs.items():
-                stats.append((word, idf * tfs.get(word,0)))
+                stats.append((word, tfs.get(word,0) * idf))
             stats.sort(key=lambda x:x[1], reverse=True)
             for word, tfidf in stats:
                 ftfidf.write("%d,%s,%d,%f\n" % (yid, word, tfs.get(word,0), tfidf))

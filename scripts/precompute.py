@@ -60,7 +60,7 @@ def first_papers():
     print "leading cid->word"
     sql = """select c.id, ci.word
              from conferences as c, conf_idf as ci
-             where ci.cid = c.id order by ci.idf"""
+             where ci.cid = c.id order by c.id, ci.idf"""
     c.execute(sql)
     f = file("first_papers.txt", 'w')
 
@@ -77,7 +77,6 @@ def first_papers():
             pid, year = pbyy[0]
             print >>f, "%d,%d,%s" % (cid, pid, word)
     f.close()
-    transaction.commit()
 
     print "copying to database"
     load_db = copy_to_table('first_papers', ['cid', 'pid', 'word'], './first_papers.txt')

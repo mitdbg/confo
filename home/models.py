@@ -15,7 +15,7 @@ class Conference(models.Model):
         avg, std = stats['avg'], stats['std']
         #filter(idf__lte=(avg - 2*std)).
         idfs = self.idfs.exclude(word__in=hide).order_by("idf")
-        return [idf.word for idf in idfs]
+        return map(lambda idf:idf.word, idfs)
 
     def top_by_idf(self, hide=[], years=[]):
         """
@@ -28,7 +28,7 @@ class Conference(models.Model):
         idfs = idfs.filter(conf = self)
         idfs = idfs.filter(idf__lte=(avg + std), idf__gte=(avg-2*std))
         idfs = idfs.order_by("idf")
-        return [idf.word for idf in idfs]
+        return map(lambda idf: idf.word, idfs)
 
     def top_by_tfidf(self, hide=[], years=[]):
         ts = Tfidf.objects.filter(conf__conf=self)
@@ -38,7 +38,7 @@ class Conference(models.Model):
             ts = ts.filter(conf__year__in=years)
         ts = ts.annotate(sumcount=Sum('count'),sumscore=Sum('tfidf'))
         ts = ts.order_by('-sumscore')
-        return [(t['word'], t['sumcount']) for t in ts[:20]]
+        return map(lambda t: (t['word'], t['sumcount']), ts)
 
     def first_paper(self, word):
         try:
