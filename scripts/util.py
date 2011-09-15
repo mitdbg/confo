@@ -43,8 +43,9 @@ def indices_decorator(tables=[]):
     ORWHERE = []
     for table in tables:
         ORWHERE.append("tablename = %s")
-    ORWHERE = ' or '.join(ORWHERE)
-    WHERE.append(ORWHERE)
+    if len(ORWHERE):
+        ORWHERE = ' or '.join(ORWHERE)
+        WHERE.append(ORWHERE)
     WHERE = ' and '.join(WHERE)
 
 
