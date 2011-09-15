@@ -52,7 +52,7 @@ td.count {font-size:10pt; padding-left: 10px; width: 6em;}
 
 <div style="margin:10px; width: 90%; min-width: 600px; overflow-x: auto">
 	<table>
-		<tr>
+<!--		<tr>
 	{% for year, tfidfs, counts, papers in stats_by_year %}
 	<td style="vertical-align: top;">
 	<table class='topk'>
@@ -67,11 +67,12 @@ td.count {font-size:10pt; padding-left: 10px; width: 6em;}
 	</td>
 	{% endfor %}
 	</tr>
-	
+-->	
 	<tr>
 	{% for year, tfidfs, counts, papers in stats_by_year %}
 	<td style="vertical-align: top;">
 		<table class='topk'>		
+		<tr><th class='year' colspan=2>{{year}}</th></tr>
 		<tr><th colspan=2>By Tf-idf</th></tr>
 		{% for word, count in tfidfs %}
 			<tr><td class='count'>{{count|floatformat:1}}</td><td >{{word}}</td></tr>
