@@ -76,34 +76,6 @@ class ConfYear(models.Model):
     def similar_papers(self):
         return [sp.paper for sp in self.similarpapers.filter(paper__conf__year__lte=self.year).order_by('paper__conf__year')]
 
-class ConfYearWordCountsManager(models.Manager):
-    def trend_by_year(self, word, conf=None):
-        wcobj = self.filter(word=word)
-        if conf:
-            wcobj = wcobj.filter(conf__conf=conf)
-        wcobj = wcobj.values("conf__year").annotate(sumcount=Sum('count')).order_by('conf__year')
-        return [(d['conf__year'], d['sumcount']) for d in wcobj]
-
-
-class ConfYearWordCounts(models.Model):
-    objects = ConfYearWordCountsManager()    
-    class Meta:
-        db_table = "year_word_counts"
-
-    conf = models.ForeignKey(ConfYear, db_column='yid', related_name='wordcounts',
-                                db_index=True, primary_key=True)
-    word = models.CharField(max_length=128, db_column='word', db_index=True)
-    count = models.IntegerField()
-
-    
-
-class SimilarConferences(models.Model):
-    class Meta:
-        db_table = "similar_conferences"
-    fromconf = models.ForeignKey(Conference, db_column="fromconf", related_name='similar_from_conferences', db_index=True)
-    toconf = models.ForeignKey(Conference, db_column="toconf", related_name='similar_to_conferences')
-    similarity = models.FloatField()             
-
 class Author(models.Model):
     class Meta:
         db_table = "authors"
@@ -134,8 +106,6 @@ class Author(models.Model):
                 d[w] = d.get(w, 0)
         return ywc
 
-    
-
 class Paper(models.Model):
     class Meta:
         db_table = "papers"
@@ -149,7 +119,40 @@ class Word(models.Model):
     paper = models.ForeignKey(Paper, db_column="pid", db_index=True, related_name="words")
     word = models.CharField(max_length=128, db_column="word", db_index=True)
 
+class ConfYearWordCountsManager(models.Manager):
+    def trend_by_year(self, word, conf=None):
+        wcobj = self.filter(word=word)
+        if conf:
+            wcobj = wcobj.filter(conf__conf=conf)
+        wcobj = wcobj.values("conf__year").annotate(sumcount=Sum('count')).order_by('conf__year')
+        return [(d['conf__year'], d['sumcount']) for d in wcobj]
+
+
+class ConfYearWordCounts(models.Model):
+    objects = ConfYearWordCountsManager()    
+    class Meta:
+        db_table = "year_word_counts"
+
+    conf = models.ForeignKey(ConfYear, db_column='yid', related_name='wordcounts',
+                                db_index=True, primary_key=True)
+    word = models.CharField(max_length=128, db_column='word', db_index=True)
+    count = models.IntegerField()
+
     
+
+class SimilarConferences(models.Model):
+    class Meta:
+        db_table = "similar_conferences"
+    fromconf = models.ForeignKey(Conference, db_column="fromconf", related_name='similar_from_conferences', db_index=True)
+    toconf = models.ForeignKey(Conference, db_column="toconf", related_name='similar_to_conferences')
+    similarity = models.FloatField()             
+
+class SimilarAuthors(models.Model):
+    class Meta:
+        db_table = "similar_authors"
+    fromauth = models.ForeignKey(Author, db_column="fromauth", related_name='similar_from_authors', db_index=True)
+    toauth = models.ForeignKey(Author, db_column="toauth", related_name='similar_to_authors')
+    similarity = models.FloatField()             
 
 class Tfidf(models.Model):
     class Meta:

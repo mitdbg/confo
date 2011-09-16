@@ -14,9 +14,23 @@ from django.db.models import *
 
 from operator import itemgetter
 
+class UniqueIder:
+    def __init__(self):
+        self.__id = 0
+        self.__map = {}
+    def getid(self, key):
+        try:
+            retval = self.__map[key]
+        except:
+            self.__id += 1
+            retval = self.__id
+            self.__map = self.__id
+        return retval
+
 class Clusterer:
-    def __init__(self, table_getter, query, topn, vector_size, unique_frac):
+    def __init__(self, table_getter, table_clearer, query, topn, vector_size, unique_frac):
         self.table_getter = table_getter
+        self.table_clearer = table_clearer
         self.query = query
         self.topn = topn
         self.vector_size = vector_size
@@ -28,7 +42,9 @@ class Clusterer:
         print "Query executed, generating vectors and inverted index"
         counts = {}
         invert = {}
-        for iid, wid, count in cur:
+        ider = UniqueIder()
+        for iid, word, count in cur:
+            wid = ider.getid(word)
             item_count = counts.get(iid, [])
             if len(item_count) == self.vector_size:
                 continue
@@ -80,5 +96,6 @@ class Clusterer:
         cur = connection.cursor()
         counts, invert = self.count_and_index(cur)
         self.write_similar(counts, invert)
+#        self.table_clearer()
         transaction.commit()
-        self.load_similar(cur)
+#        self.load_similar(cur)
