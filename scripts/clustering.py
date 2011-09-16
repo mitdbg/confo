@@ -30,16 +30,16 @@ class Clusterer:
         invert = {}
         for iid, wid, count in cur:
             item_count = counts.get(iid, [])
-            if len(item_count) == VECTOR_SIZE:
+            if len(item_count) == self.vector_size:
                 continue
             item_count.append((wid, float(count)))
             if len(item_count) == 1:
                 counts[iid] = item_count
 
             word = invert.get(wid, set())
-            invert.add(iid)     
+            word.add(iid)     
             if len(word) == 1:
-                count[wid] = word
+                invert[wid] = word
         return (counts, invert)
 
     def calc_similarities(self, cid, vector, candidates, counts):
@@ -54,7 +54,7 @@ class Clusterer:
 
     def write_topn(self, similar, table):
         sort_sim = sorted(similar, key=itemgetter('similarity'), reverse=True)
-        keepers = sort_sim[:TOPN]
+        keepers = sort_sim[:self.topn]
         for keeper in keepers:
             table.get(None, keeper, False)
 
@@ -63,7 +63,7 @@ class Clusterer:
         write_table = self.table_getter("w")
         for cid, vector in counts.items():
             cand_sets = [invert[wid] for wid, count in vector]
-            cand_sets = filter(lambda x: len(x) < UNIQUE_FRAC * len(counts), cand_sets)
+            cand_sets = filter(lambda x: len(x) < self.unique_frac * len(counts), cand_sets)
             if len(cand_sets) > 0:
                 candidates = reduce(lambda x, y: x | y, cand_sets)
                 similar = self.calc_similarities(cid, vector, candidates, counts)
