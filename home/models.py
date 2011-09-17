@@ -42,8 +42,9 @@ class Conference(models.Model):
 
     def first_paper(self, word):
         try:
-            return self.firstpapers.get(word=word).paper
-        except:
+            return self.firstpapers.filter(word=word).order_by('-paper__conf__year')[0].paper
+        except Exception, e:
+            print e
             return None
 
 
