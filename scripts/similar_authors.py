@@ -4,7 +4,7 @@ from dblogging import LogOrCache
 
 TOPN = 10
 VECTOR_SIZE = 20
-UNIQUE_FRAC = .002
+UNIQUE_WORDS_MAX = 2500
 
 def get_table(mode):
     return LogOrCache(["fromauth","toauth","similarity"], "similar_authors.txt", mode, "similar_authors")
@@ -18,5 +18,5 @@ if __name__ == '__main__':
            where pa.paper_id = w.pid
            group by pa.author_id, w.word
            order by pa.author_id, total DESC;"""
-    c = Clusterer(get_table, clear_table, q, TOPN, VECTOR_SIZE, UNIQUE_FRAC)
+    c = Clusterer(get_table, clear_table, 'fromauth', 'toauth', q, TOPN, VECTOR_SIZE, UNIQUE_WORDS_MAX)
     c.build_similar()

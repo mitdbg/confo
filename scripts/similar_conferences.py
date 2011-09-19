@@ -4,7 +4,7 @@ from dblogging import LogOrCache
 
 TOPN = 10
 VECTOR_SIZE = 20
-UNIQUE_FRAC = .05
+UNIQUE_WORDS_MAX = 300
 
 def get_table(mode):
     return LogOrCache(["fromconf","toconf","similarity"], "similar_conferences.txt", mode, "similar_conferences")
@@ -18,5 +18,5 @@ if __name__ == '__main__':
            where y.id = ywc.yid
            group by y.cid, ywc.word
            order by y.cid, total DESC;"""
-    c = Clusterer(get_table, clear_table, q, TOPN, VECTOR_SIZE, UNIQUE_FRAC)
+    c = Clusterer(get_table, clear_table, 'fromconf', 'toconf', q, TOPN, VECTOR_SIZE, UNIQUE_WORDS_MAX)
     c.build_similar()

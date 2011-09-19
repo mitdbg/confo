@@ -295,7 +295,8 @@ def author(request, name=None):
     else:
         table = []
         labels = []
-    
+
+    sim_auth = SimilarAuthors.objects.filter(fromauth = author).order_by('-similarity')
                                            
     return render_to_response("home/author.html",
                               {'counts' : ret,
@@ -305,7 +306,8 @@ def author(request, name=None):
                                'wordyears' : {},#wordyears,
                                'allwords' : allwords,
                                'pcdata' : table,
-                               'pclabels' : labels},
+                               'pclabels' : labels,                 
+                               'similarauthors': sim_auth},
                               context_instance=RequestContext(request))
 
     

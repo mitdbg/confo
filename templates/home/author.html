@@ -159,5 +159,19 @@ function drawChart() {
 <h2>Trends for top terms over publication history</h2>
 	<div id="stackgraph"></div>
 	<!-- used to include test.html -->
-	<div style="clear:both"/>
+	<div style="clear:both"></div>
+
+<h2>Similar Authors</h2>
+<div style="margin: 10px">
+  {% for sa in similarauthors %}
+    <span style="padding: 0px 10px 0px 0px"><a href="/author/{{ sa.toauth.name }}">{{ sa.toauth.name }}</a></span>
+	{% if forloop.counter|divisibleby:5 %}
+          <br />
+	{% endif %}
+  {% endfor %}
+  <div style="clear:both"></div>
+</div>
+
+
+
 {% endblock %}
