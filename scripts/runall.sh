@@ -15,9 +15,9 @@ psql -f ./setup.sql confo confo
 python2.7 tfidf.py 
 python2.7 loadtfidf.py
 
-python2.7 trends.py > trends.txt
-python2.7 loadtrends.py
-
+# calculates similarity between conferenc year and a paper
+# python2.7 trends.py > trends.txt
+# python2.7 loadtrends.py
 
 python2.7 similar_conferences.py
 

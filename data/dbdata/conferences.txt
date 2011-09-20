@@ -1,0 +1,21 @@
+1,CIDR
+2,ACM SIGMOD Workshop on Research Issues in Data Mining and Knowledge Discovery
+3,1999 ACM SIGMOD Workshop on Research Issues in Data Mining and Knowledge Discovery
+4,ICDE
+5,ICDE Workshops
+6,ICDE Demo Sessions
+7,PODS
+8,SIGMOD Conference
+9,"SIGMOD Workshop, Vol. 1"
+10,"SIGMOD Workshop, Vol. 2"
+11,SIGSMALL/SIGMOD Symposium
+12,VLDB
+13,VLDB Surveys
+14,VLDB PhD Workshop
+15,ACM SIGMOD Anthology
+16,ACM SIGMOD Digital Symposium Collection
+17,ACM SIGMOD Digital Review
+18,SIGMOD Record
+19,FDT - Bulletin of ACM SIGMOD
+20,VLDB J.
+21,PVLDB

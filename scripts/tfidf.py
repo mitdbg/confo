@@ -24,7 +24,7 @@ def get_idf(cid, yids):
     cur.execute(idfq, (cid,))
     idfs = {}
     for word, c, s, yc in cur:
-        idf = math.log(len(yids) / (float(yc)), 10)
+        idf = math.log((len(yids)+1) / (float(yc)), 10)
         idfs[word] = idf
         if idf == 0:
             print >> sys.stderr, "%d\t%s\t%d\t%d\t%f" % (cid, word, len(yids), c, idf)
