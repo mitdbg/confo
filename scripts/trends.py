@@ -1,6 +1,6 @@
 import os
 import sys
-from util import similarity
+from clustering_part2 import similarity
 import nltk
 from nltk.corpus import stopwords
 

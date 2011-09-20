@@ -16,7 +16,10 @@ class LogOrCache():
         self.props = ["id"]
         self.props.extend(propnames)
         self.logname = logfile
-        self.logfile = open(logfile, mode)
+        try:
+            self.logfile = open(logfile, mode)
+        except Exception, e:
+            print e
         self.tablename = tablename
         if mode == "w":
             self.csvfile = csv.writer(self.logfile)
