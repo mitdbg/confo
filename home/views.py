@@ -26,7 +26,7 @@ def test(request):
     return render_to_response("home/test.html", {}, context_instance=RequestContext(request))
 
 
-#@cache_page(60 * 1000)
+@cache_page(60 * 1000)
 def index(request):
     return render_to_response("home/index.html",
                               {},
@@ -34,7 +34,7 @@ def index(request):
 
 
 
-#@cache_page(60 * 1000)
+@cache_page(60 * 1000)
 def conference_all(request, cs=None):
     if cs == None:
         cs = Conference.objects.all()
@@ -70,7 +70,7 @@ def conference_all(request, cs=None):
                                'maxcount' : maxcount},
                               context_instance=RequestContext(request))
 
-#@cache_page(60 * 1000)
+@cache_page(60 * 1000)
 def conferencenoyears(request, name):
     return conference(request,name,-1,-1)
 
