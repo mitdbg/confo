@@ -312,14 +312,27 @@ def author(request, name=None):
     url = host + "?"+urllib.urlencode(data)
     result = simplejson.load(urllib.urlopen(url))
     last_name = name.split(" ")[-1]
+    break_bool = False
     for i in range(len(result['d']['Author']['Result'])):
         author_result = result['d']['Author']['Result'][i]
-        if author_result['LastName']==last_name:
-            citation_count = author_result['CitationCount']
-	    hindex = author_result['HIndex']
-	    gindex = author_result['GIndex']
-	    institute = author_result['Affiliation']['Name']
-	    homepage = author_result['HomepageURL']
+	print author_result
+	print " "
+	if author_result['LastName'] == last_name:    	
+		for research_domains in author_result['ResearchInterestDomain']:
+			if research_domains['DomainID']==2:
+		            try: citation_count = author_result['CitationCount']
+			    except (TypeError): pass
+			    try: hindex = author_result['HIndex']
+			    except (TypeError): pass
+			    try: gindex = author_result['GIndex']
+			    except (TypeError): pass
+			    try: institute = author_result['Affiliation']['Name']
+			    except (TypeError): pass
+			    try: homepage = author_result['HomepageURL']
+			    except (TypeError): pass
+			    break_bool = True
+			    break
+	if break_bool: break
 
     return render_to_response("home/author.html",
                               {'counts' : ret,
