@@ -301,7 +301,7 @@ def author(request, name=None):
     sim_auth = SimilarAuthors.objects.filter(fromauth = author).order_by('-similarity')
 
 	#query author citation count information
-    citation_count = "No data"
+    [citation_count, hindex, gindex, institute, homepage]=["No data"]*5
     data = {'AppId':'88ED395D44B123E90A2DF1C2FD076EB0DE764EC4',
     	    'FulltextQuery': name,
 	        'ResultObjects':'Author',
@@ -311,10 +311,15 @@ def author(request, name=None):
     host = "http://academic.research.microsoft.com/json.svc/search"
     url = host + "?"+urllib.urlencode(data)
     result = simplejson.load(urllib.urlopen(url))
+    last_name = name.split(" ")[-1]
     for i in range(len(result['d']['Author']['Result'])):
         author_result = result['d']['Author']['Result'][i]
-        if author_result['LastName']==name.split(" ")[1]:
-            citation_count=author_result['CitationCount']
+        if author_result['LastName']==last_name:
+            citation_count = author_result['CitationCount']
+	    hindex = author_result['HIndex']
+	    gindex = author_result['GIndex']
+	    institute = author_result['Affiliation']['Name']
+	    homepage = author_result['HomepageURL']
 
     return render_to_response("home/author.html",
                               {'counts' : ret,
@@ -326,7 +331,11 @@ def author(request, name=None):
                                'pcdata' : table,
                                'pclabels' : labels,                 
                                'similarauthors': sim_auth,
-							   'citationcount': citation_count},
+			       'hindex': hindex,
+			       'gindex': gindex,
+			       'institute': institute,
+			       'homepage': homepage,
+	   		       'citationcount': citation_count},
                               context_instance=RequestContext(request))
 
     

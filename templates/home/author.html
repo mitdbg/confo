@@ -90,11 +90,18 @@ function drawChart() {
 
 {% block content %}
 
+<h2>Home Institute </h2>
+<p> {{institute}} </p>
+
+<h2>Home Page </h2>
+<p> <a href="{{homepage}}" target="_blank">{{homepage}}</a> </p>
 
 <h2>Citation Count </h2>
 <p> {{citationcount}} </p>
 
-
+<h2> Productivity Indices </h2>
+<p> H-index: {{hindex}} </br>
+G-index: {{gindex}} </p>
 
 <h2>{{author.pubcount}} Publications overall</h2>
 <table>
