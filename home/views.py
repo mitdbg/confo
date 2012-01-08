@@ -1,5 +1,7 @@
 # import python libraries
 import sys,os,math,json
+import urllib
+import simplejson
 
 # import django modules
 from django.http import HttpResponseRedirect, HttpResponse
@@ -297,7 +299,23 @@ def author(request, name=None):
         labels = []
 
     sim_auth = SimilarAuthors.objects.filter(fromauth = author).order_by('-similarity')
-                                           
+
+	#query author citation count information
+    citation_count = "No data"
+    data = {'AppId':'88ED395D44B123E90A2DF1C2FD076EB0DE764EC4',
+    	    'FulltextQuery': name,
+	        'ResultObjects':'Author',
+	        'StartIdx':'1',
+	        'EndIdx':'10',
+	        'DomainID': '2'}
+    host = "http://academic.research.microsoft.com/json.svc/search"
+    url = host + "?"+urllib.urlencode(data)
+    result = simplejson.load(urllib.urlopen(url))
+    for i in range(len(result['d']['Author']['Result'])):
+        author_result = result['d']['Author']['Result'][i]
+        if author_result['LastName']==name.split(" ")[1]:
+            citation_count=author_result['CitationCount']
+
     return render_to_response("home/author.html",
                               {'counts' : ret,
                                'overallcounts': overallcounts,
@@ -307,7 +325,8 @@ def author(request, name=None):
                                'allwords' : allwords,
                                'pcdata' : table,
                                'pclabels' : labels,                 
-                               'similarauthors': sim_auth},
+                               'similarauthors': sim_auth,
+							   'citationcount': citation_count},
                               context_instance=RequestContext(request))
 
     

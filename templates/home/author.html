@@ -91,6 +91,11 @@ function drawChart() {
 {% block content %}
 
 
+<h2>Citation Count </h2>
+<p> {{citationcount}} </p>
+
+
+
 <h2>{{author.pubcount}} Publications overall</h2>
 <table>
 	<tr>
@@ -171,7 +176,6 @@ function drawChart() {
   {% endfor %}
   <div style="clear:both"></div>
 </div>
-
 
 
 {% endblock %}
